@@ -1,71 +1,77 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+import 'package:socket_io_common_client/socket_io_client.dart' as IO;
+import 'package:logging/logging.dart';
 
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-
-typedef void OnMessageCallback(String tag, dynamic msg);
-typedef void OnCloseCallback(int code, String reason);
-typedef void OnOpenCallback();
-
-const CLIENT_ID_EVENT = 'client-id-event';
-const OFFER_EVENT = 'offer-event';
-const ANSWER_EVENT = 'answer-event';
-const ICE_CANDIDATE_EVENT = 'ice-candidate-event';
-
-class SimpleWebSocket {
-  String url;
+class ReadSender implements StreamConsumer<List<int>> {
   IO.Socket socket;
-  OnOpenCallback onOpen;
-  OnMessageCallback onMessage;
-  OnCloseCallback onClose;
 
-  SimpleWebSocket(this.url);
+  ReadSender(IO.Socket this.socket);
 
-  connect() async {
-    try {
-      socket  = IO.io(url, <String, dynamic>{
-        'transports': ['polling'],
-      });
-      // Dart client
-      socket.on('connect', (_) {
-        print('connected');
-        onOpen();
-      });
-      socket.on(CLIENT_ID_EVENT, (data) {
-        onMessage(CLIENT_ID_EVENT, data);
-      });
-      socket.on(OFFER_EVENT, (data) {
-        onMessage(OFFER_EVENT, data);
-      });
-      socket.on(ANSWER_EVENT, (data) {
-        onMessage(ANSWER_EVENT, data);
-      });
-      socket.on(ICE_CANDIDATE_EVENT, (data) {
-        onMessage(ICE_CANDIDATE_EVENT, data);
-      });
-      socket.on('exception', (e) => print('Exception: $e'));
-      socket.on('connect_error', (e) => print('Connect error: $e'));
-      socket.on('disconnect', (e) {
-        print('disconnect');
-        onClose(0, e);
-      });
-      socket.on('fromServer', (_) => print(_));
-    } catch (e) {
-      this.onClose(500, e.toString());
-    }
+  @override
+  Future addStream(Stream<List<int>> stream) {
+    return stream.transform(utf8.decoder).forEach((content) {
+      print(content);
+      this.socket.emit("chat message", content);
+    }).timeout(Duration(days: 30));
   }
 
-  send(event, data) {
-    if (socket != null) {
-      socket.emit(event, data);
-      print('send: $event - $data');
-    }
+  @override
+  Future close() {
+    return null;
   }
+}
 
-  close() {
-    if (socket != null) socket.close();
-  }
+class SimpleWebSocket{
+  final String url;
+  SimpleWebSocket({this.url});
+ connect()async{
+   Logger.root.level = Level.ALL;
+   Logger.root.onRecord.listen((LogRecord rec) {
+     print('${rec.level.name}: ${rec.time}: ${rec.message}');
+   });
+   stdout.writeln('Type something');
 
+   List<String> cookie = null;
+
+   IO.Socket socket = IO.io(url, {
+     'secure': false,
+//    'path':'/socket-chat/',
+//    'path': '/socket.io',
+     'transports': ['polling'],
+     'request-header-processer': (requestHeader) {
+       print("get request header " + requestHeader.toString());
+       if (cookie != null) {
+         requestHeader.add('cookie', cookie);
+         print("set cookie success");
+       }else{
+         print("set cookie faield");
+       }
+     },
+     'response-header-processer': (responseHeader) {
+       print("get response header " + responseHeader.toString());
+       if (responseHeader['set-cookie'] != null) {
+         cookie = responseHeader['set-cookie'];
+         print("receive cookie success");
+       } else {
+         print("receive cookie failed");
+       }
+     },
+   });
+   socket.on('connect', (_) {
+     print('connect happened');
+     socket.emit('chat message', 'init');
+   });
+   socket.on('req-header-event', (data) {
+     print("req-header-event " + data.toString());
+   });
+   socket.on('resp-header-event', (data) {
+     print("resp-header-event " + data.toString());
+   });
+   socket.on('event', (data) => print("received " + data));
+   socket.on('disconnect', (_) => print('disconnect'));
+   socket.on('fromServer', (_) => print(_));
+   await stdin.pipe(ReadSender(socket));
+ }
 }

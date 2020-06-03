@@ -45,7 +45,7 @@ SimpleWebSocket _socket;
       _loaderAcount.add(Account(webtoken: token));
       _account = _loaderAcount;
       _token = token;
-      _socket=SimpleWebSocket("https://uoi.bachasoftware.com/socket-chat/");
+      _socket=SimpleWebSocket(url: 'http://192.168.2.248:3005');
       await _socket.connect();
       notifyListeners();
     } else {
