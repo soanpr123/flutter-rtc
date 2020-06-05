@@ -42,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final itemUser = Provider.of<UserProvider>(context, listen: false).nameus;
     List<String> list = [];
-
     return Scaffold(
       appBar: AppBar(
         title:
@@ -97,6 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             disPlayname: userpro.users[index].displayname,
                             imgeUrl: userpro.users[index].avatars,
                         status: userpro.users[index].status,
+                        token: userpro.users[index].token,
+                        id: userpro.users[index].id,
+                        idFome: userpro.users[index].idFome,
                           ),
                       itemCount: userpro.users.length),
                 ),

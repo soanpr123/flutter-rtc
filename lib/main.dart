@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:logindemo/src/provider/auth_provider.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
+import 'package:logindemo/src/screen/chat_screen.dart';
 
 import 'package:logindemo/src/screen/home_screen.dart';
 import 'package:logindemo/src/screen/login_screen.dart';
@@ -29,11 +30,15 @@ class MyApp extends StatelessWidget {
 //            value: UserProvider(),
 ////          ),
           ChangeNotifierProxyProvider<Auth, UserProvider>(
-            update: (ctx, auth, _) => UserProvider(auth.token),
+            update: (ctx, auth, _) => UserProvider(auth.token,auth.idFome),
           ),
         ],
         child: Consumer<Auth>(
             builder: (ctx, auth, _) => MaterialApp(
+              theme: ThemeData(
+                primaryColor: Colors.red,
+                accentColor: Color(0xFFFEF9EB),
+              ),
                   home: auth.isAuth
                       ? HomeScreen()
                       : FutureBuilder(
@@ -46,7 +51,8 @@ class MyApp extends StatelessWidget {
                   routes: {
                     SignupScreen.routername: (ctx) => SignupScreen(),
                     LoginScreen.routername: (ctx) => LoginScreen(),
-                    HomeScreen.routername: (ctx) => HomeScreen()
+                    HomeScreen.routername: (ctx) => HomeScreen(),
+                    ChatScreen.routerName: (ctx) => ChatScreen()
                   },
                 )));
   }

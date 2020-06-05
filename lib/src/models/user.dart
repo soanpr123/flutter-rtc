@@ -40,20 +40,24 @@ class UserMd {
 
 class DatumUser {
   final int id;
+  final int idFome;
   final String firstname;
   final String lastname;
   final String displayname;
   final String status;
   final String avatars;
   final String email;
-  DatumUser(
+  final String token;
+   DatumUser(
       {@required this.id,
+        @required this.idFome,
       @required this.firstname,
       @required this.lastname,
       @required this.displayname,
       @required this.status,
       @required this.avatars,
-      @required this.email});
+      @required this.email,
+      @required this.token});
 
   factory DatumUser.fromJson(Map<String, dynamic> json) => DatumUser(
       id: json["id"] as int,

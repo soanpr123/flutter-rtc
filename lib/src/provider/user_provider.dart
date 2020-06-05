@@ -7,6 +7,7 @@ import 'package:logindemo/src/models/user.dart';
 class UserProvider with ChangeNotifier {
   List<DatumUser> _users = [];
   String token;
+  int  idfome;
   static List<String> _nameus = [];
   List<DatumUser> get users => _users;
   List<searchUser> _search = [];
@@ -14,7 +15,7 @@ class UserProvider with ChangeNotifier {
 
   List<searchUser> get search => _search;
 
-  UserProvider(this.token);
+  UserProvider(this.token,this.idfome);
   Map<String, String> requestHeaders = {
     'Accept': 'application/json;charset=UTF-8',
     'Content-type': 'application/json;charset=UTF-8'
@@ -44,12 +45,15 @@ class UserProvider with ChangeNotifier {
           var decode = Uri.decodeFull(_uesr1.displayname);
           loaderUser.add(DatumUser(
               id: _uesr1.id,
-              firstname: _uesr1.firstname,
+              firstname: _uesr1.lastname,
               lastname: _uesr1.lastname,
               displayname: decode,
               status: _uesr1.status,
               avatars: _uesr1.avatars,
-              email: _uesr1.email));
+              email: _uesr1.email,
+          token: token,
+            idFome: idfome
+          ));
           loaderNameUser.add(decode);
           _search.add(searchUser(name: decode, imageUrl: _uesr1.avatars));
         }

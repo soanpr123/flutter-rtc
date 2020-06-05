@@ -14,10 +14,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Auth with ChangeNotifier {
   List<Account> _account = [];
   String _token;
+  int  _idFome;
 SimpleWebSocket _socket;
   bool get isAuth {
     return token != null;
   }
+
+  int get idFome => _idFome;
 
   String get token {
     if (_token != null) {
@@ -34,7 +37,7 @@ SimpleWebSocket _socket;
   };
 
   void sha512enCode(
-      String token, String password, String passwordsha, String saltKey)  async{
+      String token, String password, String passwordsha, String saltKey,int id)  async{
     List<int> key = utf8.encode(saltKey);
     List<int> bytes = utf8.encode(password);
     var hmacSha256 = new Hmac(sha512, key); // HMAC-SHA256
@@ -46,8 +49,9 @@ SimpleWebSocket _socket;
       _loaderAcount.add(Account(webtoken: token));
       _account = _loaderAcount;
       _token = token;
-      _socket=SimpleWebSocket(url: 'http://192.168.2.248:3005');
-      await _socket.connect();
+      _idFome=id;
+      _socket=SimpleWebSocket();
+      await _socket.connect('http://192.168.2.250:3005');
       notifyListeners();
     } else {
       _token == null;
@@ -71,7 +75,7 @@ SimpleWebSocket _socket;
         return;
       }
       sha512enCode(responseData['webToken'], Password, responseData['password'],
-          responseData['saltKey']);
+          responseData['saltKey'],responseData['id']);
       if (responseData['error'] != null) {
         throw HttpException(responseData['message']);
       }
@@ -103,13 +107,14 @@ SimpleWebSocket _socket;
     final extraxUserData =
         json.decode(perfs.get('userData')) as Map<String, Object>;
     final webToken = extraxUserData['webToken'];
+    final id = extraxUserData['id'];
     if (webToken == null) {
       return false;
     }
     final password = extraxUserData['password'];
     final pasinput = extraxUserData['pasinput'];
     final saltKey = extraxUserData['saltKey'];
-    sha512enCode(webToken, pasinput, password, saltKey);
+    sha512enCode(webToken, pasinput, password, saltKey,id);
     notifyListeners();
     return true;
   }
