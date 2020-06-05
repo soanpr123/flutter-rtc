@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logindemo/src/models/message_model.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
@@ -14,11 +15,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+
   JoinRoom _joinRoom;
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
   _buildMessage(Message message, bool isMe) {
+    var date =new DateTime.fromMicrosecondsSinceEpoch(message.time*1000);
+    String formatdate=DateFormat('yyyy/MM/dd, kk:mm').format(date);
     final Container msg = Container(
       margin: isMe
           ? EdgeInsets.only(
@@ -47,8 +51,10 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+
+
           Text(
-            "${message.time}",
+            message.message,
             style: TextStyle(
               color: Colors.blueGrey,
               fontSize: 16.0,
@@ -57,10 +63,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           SizedBox(height: 8.0),
           Text(
-            message.message,
+            formatdate,
             style: TextStyle(
               color: Colors.blueGrey,
-              fontSize: 16.0,
+              fontSize: 10.0,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -252,10 +258,11 @@ if(_chatTfController.text.isEmpty){
   return;
 }
 String text=_chatTfController.text.trim();
-
-
 _joinRoom.sendSingleChatMessage(text, 1591170361347, token);
 _chatTfController.text = '';
-
+setState(() {
+  onChatMessageReceived(_joinRoom.setOnChatMessageReceivedListener(onChatMessageReceived));
+  _addMessage(0, _chatMessages);
+});
   }
 }

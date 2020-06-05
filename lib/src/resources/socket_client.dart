@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import 'package:logging/logging.dart';
@@ -24,7 +25,7 @@ class ReadSender implements StreamConsumer<List<int>> {
   }
 }
 
-class SimpleWebSocket  {
+class SimpleWebSocket with ChangeNotifier {
   String token = "";
   int idFriend = 0;
   String name = "";
@@ -40,7 +41,7 @@ class SimpleWebSocket  {
 
       socket = IO.io(url, {
         'secure': false,
-//    'path':'/socket-chat/',
+    'path':'/socket-chat/',
 //    'path': '/socket.io',
         'transports': ['polling'],
         'request-header-processer': (requestHeader) {
@@ -76,13 +77,12 @@ class SimpleWebSocket  {
       socket.on('fromServer', (_) => print(_));
       await stdin.pipe(ReadSender(socket));
 //      joinRoom();
-
   }
 
 
   }
   class JoinRoom{
-    IO.Socket _socket=IO.io("http://192.168.2.250:3005",{
+    IO.Socket _socket=IO.io("https://uoi.bachasoftware.com",{
       'transports': ['polling'],
     });
     joinRooms(String token,int id,String name) {
@@ -103,6 +103,7 @@ class SimpleWebSocket  {
         print("Received là : $data");
         onChatMessageReceived(data);
       });
+
     }
     sendSingleChatMessage(String masage,int date,String token) {
       if (null == _socket) {

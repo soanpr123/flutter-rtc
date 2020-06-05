@@ -47,7 +47,7 @@ class _FrientItemsState extends State<FrientItems> {
               'token':widget.token
             });
 
-            _socket.joinRooms(widget.token, widget.id, widget.disPlayname);
+            _socket.joinRooms(widget.token, widget.id, "Đặng Hoàng Anh");
           },
           child: GestureDetector(
             child: ListTile(
