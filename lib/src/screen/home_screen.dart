@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_simple_dependency_injection/injector.dart';
 import 'package:logindemo/src/models/user.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
-import 'package:logindemo/src/resourch/socket_client.dart';
 import 'package:logindemo/src/widgets/friend_item.dart';
 import 'package:provider/provider.dart';
 import 'package:getflutter/getflutter.dart';

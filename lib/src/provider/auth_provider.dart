@@ -5,7 +5,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:logindemo/src/http_exception.dart';
-import 'package:logindemo/src/resourch/socket_client.dart';
+import 'package:logindemo/src/resources/socket_client.dart';
+
 
 import 'package:logindemo/src/style/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -115,7 +116,7 @@ SimpleWebSocket _socket;
 
   //---------------------Signup------------------------------------------
 
-  Future<void> singup(String email, String password) async {
+  Future<void> login(String email, String password) async {
     return _authenticate(email, password);
   }
 }

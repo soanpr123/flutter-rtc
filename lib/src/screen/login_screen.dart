@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     _formKey.currentState.save();
-    await Provider.of<Auth>(context, listen: false).singup(
+    await Provider.of<Auth>(context, listen: false).login(
         _authData['email'],
         _authData['password'],
     );
