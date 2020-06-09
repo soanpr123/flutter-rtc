@@ -39,6 +39,7 @@ dependencies:
   socket_io: ^0.9.3
   socket_io_common_client: ^0.10.0
   intl: ^0.16.1
+  curved_navigation_bar: ^0.3.2
 
 
 dev_dependencies:

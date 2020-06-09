@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:getflutter/components/search_bar/gf_search_bar.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
 import 'package:logindemo/src/screen/chat_screen.dart';
-import 'package:logindemo/utilities/Global.dart';
-import 'package:socket_io_common_client/socket_io_client.dart' as IO;
+
 
 class FrientItems extends StatefulWidget {
   final String disPlayname;
@@ -25,10 +23,10 @@ class FrientItems extends StatefulWidget {
 }
 
 class _FrientItemsState extends State<FrientItems> {
-  JoinRoom _socket;
+  JoinRoom _joinRoom;
   @override
   void initState() {
-    _socket = new JoinRoom();
+    _joinRoom=JoinRoom();
 //G.initSocket();
     super.initState();
   }
@@ -40,14 +38,15 @@ class _FrientItemsState extends State<FrientItems> {
       children: <Widget>[
         GestureDetector(
           onTap: () {
-            Navigator.of(context).pushNamed(ChatScreen.routerName, arguments: {
+            Navigator.of(context)
+                .pushNamed(ChatScreen.routerName, arguments: {
               'image': widget.imgeUrl,
               'name': widget.disPlayname,
               'idFome': widget.idFome,
-              'token':widget.token
+              'token': widget.token,
             });
 
-            _socket.joinRooms(widget.token, widget.id, "Đặng Hoàng Anh");
+           _joinRoom.joinRooms(widget.token, widget.id, widget.disPlayname);
           },
           child: GestureDetector(
             child: ListTile(
@@ -78,7 +77,9 @@ class _FrientItemsState extends State<FrientItems> {
             ),
           ),
         ),
-        Divider()
+        Divider(
+          color: Colors.black,
+        )
       ],
     );
   }

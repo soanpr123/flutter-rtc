@@ -8,14 +8,12 @@ import 'package:logindemo/src/screen/chat_screen.dart';
 
 import 'package:logindemo/src/screen/home_screen.dart';
 import 'package:logindemo/src/screen/login_screen.dart';
+import 'package:logindemo/src/screen/navigationbar_screen.dart';
 import 'package:logindemo/src/screen/signup_screen.dart';
 import 'package:logindemo/src/screen/splaps_screen.dart';
 import 'package:provider/provider.dart';
 
-void main()async {
-
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
 
 class MyApp extends StatelessWidget {
@@ -26,21 +24,19 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider.value(
             value: Auth(),
           ),
-//          ChangeNotifierProvider.value(
-//            value: UserProvider(),
-////          ),
           ChangeNotifierProxyProvider<Auth, UserProvider>(
-            update: (ctx, auth, _) => UserProvider(auth.token,auth.idFome),
+            update: (ctx, auth, _) => UserProvider(auth.token, auth.idFome),
           ),
+
         ],
         child: Consumer<Auth>(
             builder: (ctx, auth, _) => MaterialApp(
-              theme: ThemeData(
-                primaryColor: Colors.red,
-                accentColor: Color(0xFFFEF9EB),
-              ),
+                  theme: ThemeData(
+                    primaryColor: Colors.red,
+                    accentColor: Color(0xFFFEF9EB),
+                  ),
                   home: auth.isAuth
-                      ? HomeScreen()
+                      ? Navigation()
                       : FutureBuilder(
                           future: auth.autologin(),
                           builder: (context, authSnapshot) =>
@@ -57,5 +53,3 @@ class MyApp extends StatelessWidget {
                 )));
   }
 }
-
-

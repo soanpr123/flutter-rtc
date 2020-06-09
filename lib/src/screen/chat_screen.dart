@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logindemo/src/models/message_model.dart';
@@ -15,14 +14,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-
   JoinRoom _joinRoom;
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
+
   _buildMessage(Message message, bool isMe) {
-    var date =new DateTime.fromMicrosecondsSinceEpoch(message.time*1000);
-    String formatdate=DateFormat('yyyy/MM/dd, kk:mm').format(date);
+    var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
+    String formatdate = DateFormat('yyyy/MM/dd, kk:mm').format(date);
     final Container msg = Container(
       margin: isMe
           ? EdgeInsets.only(
@@ -51,8 +50,6 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-
-
           Text(
             message.message,
             style: TextStyle(
@@ -83,7 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _buildMessageComposer(String token ) {
+  _buildMessageComposer(String token,String name,int id) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0),
       height: 70.0,
@@ -103,15 +100,15 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: InputDecoration.collapsed(
                 hintText: 'Send a message...',
               ),
-              controller:_chatTfController ,
+              controller: _chatTfController,
             ),
           ),
           IconButton(
             icon: Icon(Icons.send),
             iconSize: 25.0,
             color: Theme.of(context).primaryColor,
-            onPressed: () async{
-              sendBottomTap( token );
+            onPressed: () async {
+              sendBottomTap(token,name,id);
 //              _joinRoom.sendSingleChatMessage();
             },
           ),
@@ -124,14 +121,18 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     _joinRoom = JoinRoom();
     _joinRoom.setOnChatMessageReceivedListener(onChatMessageReceived);
+    _joinRoom.setOnListener(onListerner);
+    _chatListScrollToBottom();
     _chatMessages = List();
     _chatLVController = ScrollController(initialScrollOffset: 0.0);
     _chatTfController = TextEditingController();
-
     super.initState();
   }
 
-  //-------------------get message in response------------------------//
+  @override
+  //----------------get message in response------------------------//
+
+//------------------- done add Message to UI---------------------///
   onChatMessageReceived(data) {
     print('onChatMessageReceived $data');
     if (null == data || data.toString().isEmpty) {
@@ -147,23 +148,21 @@ class _ChatScreenState extends State<ChatScreen> {
           time: item.time,
           isReading: item.isReading));
     }
-
     print(loaderMassage.length);
     processMessage(loaderMassage);
-//  processMessage(chatMessageModel);
   }
 
   processMessage(List<Message> chatMessageModel) {
     _addMessage(0, chatMessageModel);
   }
 
-//-------------------add Message to UI---------------------///
-  _addMessage(id, List<Message> chatMessageModel) async {
-    print('Adding Message to UI ${chatMessageModel[0].message}');
+  _addMessage(
+    id,
+    List<Message> chatMessageModel,
+  ) async {
     setState(() {
       _chatMessages = chatMessageModel;
     });
-    print('Total Messages: ${_chatMessages.length}');
     _chatListScrollToBottom();
   }
 
@@ -178,7 +177,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
   }
-//------------------- done add Message to UI---------------------///
 //-------------------done get message in response------------------------//
 
   @override
@@ -246,23 +244,31 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-            _buildMessageComposer(info['token']),
+            _buildMessageComposer(info['token'],info['name'],info['idFome']),
           ],
         ),
       ),
     );
   }
 
-  void sendBottomTap(String token ) {
-if(_chatTfController.text.isEmpty){
-  return;
-}
-String text=_chatTfController.text.trim();
-_joinRoom.sendSingleChatMessage(text, 1591170361347, token);
-_chatTfController.text = '';
-setState(() {
-  onChatMessageReceived(_joinRoom.setOnChatMessageReceivedListener(onChatMessageReceived));
-  _addMessage(0, _chatMessages);
-});
+  void sendBottomTap(String token,String name,int id) {
+    if (_chatTfController.text.isEmpty) {
+      return;
+    }
+    String text = _chatTfController.text.trim();
+    _chatMessages.add(Message(
+      id: id,
+      message: text,
+      time: DateTime.now().millisecondsSinceEpoch,
+      isReading: false,
+      displayName: name,
+    ));
+   _chatListScrollToBottom();
+   _joinRoom.sendSingleChatMessage(
+        text, DateTime.now().millisecondsSinceEpoch, token);
+    _chatTfController.text = '';
+  }
+  onListerner(data) {
+    print("listenr là : $data");
   }
 }
