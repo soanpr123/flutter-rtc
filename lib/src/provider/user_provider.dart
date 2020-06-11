@@ -66,6 +66,11 @@ class UserProvider with ChangeNotifier {
       throw e;
     }
   }
+  @override
+  void dispose() {
+  fetchUser();
+    super.dispose();
+  }
 }
 
 class searchUser {

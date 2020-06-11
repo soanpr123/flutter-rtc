@@ -129,7 +129,18 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
   }
 
-//↓↓↓↓↓↓↓------get message in response------↓↓↓↓↓↓//
+  @override
+  void dispose() {
+    _joinRoom = JoinRoom();
+    _joinRoom.setOnChatMessageReceivedListener(onChatMessageReceived);
+    _joinRoom.setOnListener(onListerner);
+    _chatListScrollToBottom();
+    _chatMessages = List();
+    _chatLVController = ScrollController(initialScrollOffset: 0.0);
+    _chatTfController = TextEditingController();
+    super.dispose();
+  } //↓↓↓↓↓↓↓------get message in response------↓↓↓↓↓↓//
+
   onChatMessageReceived(data) {
     print('onChatMessageReceived $data');
     if (null == data || data.toString().isEmpty) {
@@ -180,23 +191,25 @@ class _ChatScreenState extends State<ChatScreen> {
 //-------------------done get message in response------------------------//
 //------↓↓↓↓--notification listener and update Listview--↓↓↓↓-----//
   onListerner(data) {
-    setState(() {
-      if (null == data || data.toString().isEmpty) {
-        return;
-      }
-      ResponseMessageModelClass messageMD =
-          ResponseMessageModelClass.fromJson(data);
-      List<Message> loaderMassage = [];
-      _chatMessages.add(Message(
-        id: messageMD.userid,
-        message: messageMD.message,
-        time: messageMD.time,
-        isReading: false,
-        displayName: messageMD.username,
-      ));
-      print(loaderMassage.length);
-      _chatListScrollToBottom();
-    });
+    if (null == data || data.toString().isEmpty) {
+      return;
+    }
+    ResponseMessageModelClass messageMD =
+        ResponseMessageModelClass.fromJson(data);
+    List<Message> loaderMassage = [];
+    if (this.mounted) {
+      setState(() {
+        _chatMessages.add(Message(
+          id: messageMD.userid,
+          message: messageMD.message,
+          time: messageMD.time,
+          isReading: false,
+          displayName: messageMD.username,
+        ));
+        print(loaderMassage.length);
+        _chatListScrollToBottom();
+      });
+    }
   }
 
   //-------------------------------------done notification listener and update Listview------------------------//
@@ -274,22 +287,26 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void sendBottomTap(String token, String name, int id) {
-    setState(() {
-      if (_chatTfController.text.isEmpty) {
-        return;
-      }
-      String text = _chatTfController.text.trim();
-      _chatMessages.add(Message(
-        id: id,
-        message: text,
-        time: DateTime.now().millisecondsSinceEpoch,
-        isReading: false,
-        displayName: name,
-      ));
-      _chatListScrollToBottom();
-      _joinRoom.sendSingleChatMessage(
-          text, DateTime.now().millisecondsSinceEpoch, token);
-      _chatTfController.text = '';
-    });
+    if (_chatTfController.text.isEmpty) {
+      return;
+    }
+    String text = _chatTfController.text.trim();
+    if (this.mounted) {
+      setState(() {
+        _chatMessages.add(Message(
+          id: id,
+          message: text,
+          time: DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          isReading: false,
+          displayName: name,
+        ));
+        _chatListScrollToBottom();
+      });
+    }
+    _joinRoom.sendSingleChatMessage(
+        text, DateTime.now().millisecondsSinceEpoch, token);
+    _chatTfController.text = '';
   }
 }

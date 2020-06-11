@@ -27,10 +27,13 @@ class _FrientItemsState extends State<FrientItems> {
   @override
   void initState() {
     _joinRoom=JoinRoom();
-//G.initSocket();
     super.initState();
   }
-
+@override
+  void dispose() {
+  _joinRoom=JoinRoom();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold.of(context);

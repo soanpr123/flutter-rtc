@@ -37,7 +37,11 @@ class _HomeScreenState extends State<HomeScreen> {
     isInit = false;
     super.didChangeDependencies();
   }
-
+@override
+  void dispose() {
+  Provider.of<UserProvider>(context).dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final itemUser = Provider.of<UserProvider>(context, listen: false).nameus;
