@@ -27,20 +27,19 @@ class ReadSender implements StreamConsumer<List<int>> {
 }
 
 class SimpleWebSocket with ChangeNotifier {
-  String token = "";
   int idFriend = 0;
   String name = "";
   IO.Socket socket;
 
-  connect(String url) async {
+  connect(String url, String token) async {
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
+
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-      'secure': false,
       'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
@@ -63,8 +62,10 @@ class SimpleWebSocket with ChangeNotifier {
         }
       },
     });
+
     socket.on('connect', (_) {
       print('connect happened');
+      socket.emit("user", {"token": token});
     });
     socket.on('req-header-event', (data) {
       print("req-header-event " + data.toString());
@@ -72,14 +73,12 @@ class SimpleWebSocket with ChangeNotifier {
     socket.on('resp-header-event', (data) {
       print("resp-header-event " + data.toString());
     });
+
     socket.on('event', (data) => print("received " + data));
     socket.on('disconnect', (_) => print('disconnect'));
     socket.on('fromServer', (_) => print(_));
     await stdin.pipe(ReadSender(socket));
 //      joinRoom();
-    await socket.on("notify_msg",(data2){
-      print("data_msg : $data2");
-    });
   }
 }
 
@@ -88,7 +87,7 @@ class JoinRoom {
     'path': '/socket-chat/',
     'transports': ['polling'],
   });
-//  IO.Socket _socket;
+
   joinRooms(String token, int id, String name) {
     if (_socket != null) {
       _socket.emit('change_room', {
@@ -99,25 +98,20 @@ class JoinRoom {
       print("join");
     }
   }
-
   setOnChatMessageReceivedListener(Function onChatMessageReceived) {
-//    _socket.on("notify_msg",(data2){
-//      print("data_msg : $data2");
-//      onChatMessageReceived(data2);
-//    });
     _socket.on("histo", (data) {
       print("Received là : $data");
       onChatMessageReceived(data);
     });
-
   }
-setOnListener(Function onListener)async{
-   await _socket.on("notify_msg",  (data){
-    print("data msg là : $data");
-    onListener(data);
-  });
 
-}
+  setOnListener(Function onListener) {
+    _socket.on("notify_msg", (data) {
+      print("data_msg : $data");
+      onListener(data);
+    });
+  }
+
   sendSingleChatMessage(String masage, int date, String token) {
     if (null == _socket) {
       print("Socket is Null, Cannot send message");
@@ -125,8 +119,5 @@ setOnListener(Function onListener)async{
     }
     _socket
         .emit("new_message", {"message": masage, "time": date, "token": token});
-    _socket.emit("readed_message",{
-      "token":token
-    });
   }
 }

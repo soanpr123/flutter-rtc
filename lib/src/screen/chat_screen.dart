@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logindemo/src/models/message_model.dart';
+import 'package:logindemo/src/models/response_message_model.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,6 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
-
   _buildMessage(Message message, bool isMe) {
     var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
     String formatdate = DateFormat('yyyy/MM/dd, kk:mm').format(date);
@@ -80,7 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _buildMessageComposer(String token,String name,int id) {
+  _buildMessageComposer(String token, String name, int id) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0),
       height: 70.0,
@@ -108,7 +108,7 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 25.0,
             color: Theme.of(context).primaryColor,
             onPressed: () async {
-              sendBottomTap(token,name,id);
+              sendBottomTap(token, name, id);
 //              _joinRoom.sendSingleChatMessage();
             },
           ),
@@ -129,10 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
   }
 
-  @override
-  //----------------get message in response------------------------//
-
-//------------------- done add Message to UI---------------------///
+//↓↓↓↓↓↓↓------get message in response------↓↓↓↓↓↓//
   onChatMessageReceived(data) {
     print('onChatMessageReceived $data');
     if (null == data || data.toString().isEmpty) {
@@ -156,6 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _addMessage(0, chatMessageModel);
   }
 
+//↓↓↓↓↓↓------add Message to UI----↓↓↓↓↓↓↓//
   _addMessage(
     id,
     List<Message> chatMessageModel,
@@ -166,6 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatListScrollToBottom();
   }
 
+//------------------- done add Message to UI---------------------///
   _chatListScrollToBottom() {
     Timer(Duration(milliseconds: 100), () {
       if (_chatLVController.hasClients) {
@@ -177,8 +176,31 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
   }
-//-------------------done get message in response------------------------//
 
+//-------------------done get message in response------------------------//
+//------↓↓↓↓--notification listener and update Listview--↓↓↓↓-----//
+  onListerner(data) {
+    setState(() {
+      if (null == data || data.toString().isEmpty) {
+        return;
+      }
+      ResponseMessageModelClass messageMD =
+          ResponseMessageModelClass.fromJson(data);
+      List<Message> loaderMassage = [];
+      _chatMessages.add(Message(
+        id: messageMD.userid,
+        message: messageMD.message,
+        time: messageMD.time,
+        isReading: false,
+        displayName: messageMD.username,
+      ));
+      print(loaderMassage.length);
+      _chatListScrollToBottom();
+    });
+  }
+
+  //-------------------------------------done notification listener and update Listview------------------------//
+  //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-Build Ui chat-↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓//
   @override
   Widget build(BuildContext context) {
     final info =
@@ -224,51 +246,50 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30.0),
-                    topRight: Radius.circular(30.0),
-                  ),
-                  child: ListView.builder(
-                    cacheExtent: 100,
-                    controller: _chatLVController,
-                    reverse: false,
-                    shrinkWrap: true,
-                    padding: EdgeInsets.only(top: 15.0),
-                    itemCount: _chatMessages == null ? 0 : _chatMessages.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final Message message = _chatMessages[index];
-                      final bool isMe = message.id == info['idFome'];
-                      return _buildMessage(message, isMe);
-                    },
-                  ),
-                ),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30.0),
+                      topRight: Radius.circular(30.0),
+                    ),
+                    child: ListView.builder(
+                      cacheExtent: 100,
+                      controller: _chatLVController,
+                      reverse: false,
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(top: 15.0),
+                      itemCount:
+                          _chatMessages == null ? 0 : _chatMessages.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final Message message = _chatMessages[index];
+                        final bool isMe = message.id == info['idFome'];
+                        return _buildMessage(message, isMe);
+                      },
+                    )),
               ),
             ),
-            _buildMessageComposer(info['token'],info['name'],info['idFome']),
+            _buildMessageComposer(info['token'], info['name'], info['idFome']),
           ],
         ),
       ),
     );
   }
 
-  void sendBottomTap(String token,String name,int id) {
-    if (_chatTfController.text.isEmpty) {
-      return;
-    }
-    String text = _chatTfController.text.trim();
-    _chatMessages.add(Message(
-      id: id,
-      message: text,
-      time: DateTime.now().millisecondsSinceEpoch,
-      isReading: false,
-      displayName: name,
-    ));
-   _chatListScrollToBottom();
-   _joinRoom.sendSingleChatMessage(
-        text, DateTime.now().millisecondsSinceEpoch, token);
-    _chatTfController.text = '';
-  }
-  onListerner(data) {
-    print("listenr là : $data");
+  void sendBottomTap(String token, String name, int id) {
+    setState(() {
+      if (_chatTfController.text.isEmpty) {
+        return;
+      }
+      String text = _chatTfController.text.trim();
+      _chatMessages.add(Message(
+        id: id,
+        message: text,
+        time: DateTime.now().millisecondsSinceEpoch,
+        isReading: false,
+        displayName: name,
+      ));
+      _chatListScrollToBottom();
+      _joinRoom.sendSingleChatMessage(
+          text, DateTime.now().millisecondsSinceEpoch, token);
+      _chatTfController.text = '';
+    });
   }
 }

@@ -51,7 +51,7 @@ SimpleWebSocket _socket;
       _token = token;
       _idFome=id;
       _socket=SimpleWebSocket();
-      await _socket.connect('https://uoi.bachasoftware.com');
+      await _socket.connect('https://uoi.bachasoftware.com',_token);
       notifyListeners();
     } else {
       _token == null;
@@ -74,6 +74,7 @@ SimpleWebSocket _socket;
       if (responseData == null) {
         return;
       }
+      print(responseData['webToken']);
       sha512enCode(responseData['webToken'], Password, responseData['password'],
           responseData['saltKey'],responseData['id']);
       if (responseData['error'] != null) {
