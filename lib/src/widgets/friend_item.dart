@@ -47,6 +47,7 @@ class _FrientItemsState extends State<FrientItems> {
               'name': widget.disPlayname,
               'idFome': widget.idFome,
               'token': widget.token,
+              'id':widget.id
             });
 
            _joinRoom.joinRooms(widget.token, widget.id, widget.disPlayname);

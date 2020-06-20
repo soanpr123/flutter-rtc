@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/rtc_video_view.dart';
 import 'package:intl/intl.dart';
 import 'package:logindemo/src/models/message_model.dart';
 import 'package:logindemo/src/models/response_message_model.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
+import 'package:logindemo/src/resources/call_video/signaling.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
+import 'package:logindemo/src/screen/call_video_screen.dart';
+import 'package:logindemo/src/widgets/render_video.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -19,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
+  Signaling _signaling;
   _buildMessage(Message message, bool isMe) {
     var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
     String formatdate = DateFormat('yyyy/MM/dd, kk:mm').format(date);
@@ -211,8 +216,12 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     }
   }
-
   //-------------------------------------done notification listener and update Listview------------------------//
+//  _invitePeer(context, peerId, use_screen) async {
+//    if (_signaling != null && peerId != _selfId) {
+//      _signaling.invite(peerId, 'video', use_screen);
+//    }
+//  }
   //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-Build Ui chat-↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓//
   @override
   Widget build(BuildContext context) {
@@ -235,7 +244,9 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: Icon(Icons.videocam),
             iconSize: 30.0,
             color: Colors.white,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>CallSample(id: info['id'],token:info['token'],name:info['name'],)));
+            },
           ),
           IconButton(
             icon: Icon(Icons.info),

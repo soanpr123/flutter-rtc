@@ -40,7 +40,9 @@ dependencies:
   socket_io_common_client: ^0.10.0
   intl: ^0.16.1
   curved_navigation_bar: ^0.3.2
-
+  flutter_webrtc: ^0.2.8
+  connectivity: ^0.4.8+6
+  flutter_dotenv: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +60,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/logos/facebook.jpg
     - assets/logos/google.jpg
 

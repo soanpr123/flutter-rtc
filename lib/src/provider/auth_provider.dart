@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:logindemo/src/http_exception.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
@@ -15,6 +16,7 @@ class Auth with ChangeNotifier {
   List<Account> _account = [];
   String _token;
   int  _idFome;
+  var URL=DotEnv().env['REACT_APP_URL_SOCKETIO'];
 SimpleWebSocket _socket;
   bool get isAuth {
     return token != null;
@@ -51,7 +53,7 @@ SimpleWebSocket _socket;
       _token = token;
       _idFome=id;
       _socket=SimpleWebSocket();
-      await _socket.connect('https://uoi.bachasoftware.com',_token);
+      await _socket.connect('http://192.168.2.250:3005',_token);
       notifyListeners();
     } else {
       _token == null;
@@ -122,7 +124,8 @@ SimpleWebSocket _socket;
 
   //---------------------Signup------------------------------------------
 
-  Future<void> login(String email, String password) async {
+  Future<void>
+  login(String email, String password) async {
     return _authenticate(email, password);
   }
 }

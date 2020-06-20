@@ -2,10 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logindemo/src/models/message_model.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import 'package:logging/logging.dart';
+const CLIENT_ID_EVENT = 'client-id-event';
+const OFFER_EVENT = 'offer';
+const ANSWER_EVENT = 'answer';
+const ICE_CANDIDATE_EVENT = 'ice-candidate-event';
+typedef void OnMessageCallback(String tag, dynamic msg);
+typedef void OnCloseCallback(int code, String reason);
+typedef void OnOpenCallback();
 
 class ReadSender implements StreamConsumer<List<int>> {
   IO.Socket socket;
@@ -26,21 +34,22 @@ class ReadSender implements StreamConsumer<List<int>> {
   }
 }
 
-class SimpleWebSocket with ChangeNotifier {
+class SimpleWebSocket {
   int idFriend = 0;
   String name = "";
   IO.Socket socket;
-
-  connect(String url, String token) async {
+  OnOpenCallback onOpen;
+  OnMessageCallback onMessage;
+  OnCloseCallback onClose;
+    connect(String url, String token) async {
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
-
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-      'path': '/socket-chat/',
+//      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -66,6 +75,7 @@ class SimpleWebSocket with ChangeNotifier {
     socket.on('connect', (_) {
       print('connect happened');
       socket.emit("user", {"token": token});
+//      onOpen();
     });
     socket.on('req-header-event', (data) {
       print("req-header-event " + data.toString());
@@ -73,18 +83,36 @@ class SimpleWebSocket with ChangeNotifier {
     socket.on('resp-header-event', (data) {
       print("resp-header-event " + data.toString());
     });
-
+    socket.on(CLIENT_ID_EVENT, (data) {
+      onMessage(CLIENT_ID_EVENT, data);
+    });
+    socket.on(OFFER_EVENT, (data) {
+      onMessage(OFFER_EVENT, data);
+    });
+    socket.on(ANSWER_EVENT, (data) {
+      onMessage(ANSWER_EVENT, data);
+    });
+    socket.on(ICE_CANDIDATE_EVENT, (data) {
+      onMessage(ICE_CANDIDATE_EVENT, data);
+    });
     socket.on('event', (data) => print("received " + data));
     socket.on('disconnect', (_) => print('disconnect'));
     socket.on('fromServer', (_) => print(_));
     await stdin.pipe(ReadSender(socket));
 //      joinRoom();
   }
+  send(event, data) {
+    if (socket != null) {
+      socket.emit(event, data);
+      print('send: $event - $data');
+    }
+  }
 }
 
 class JoinRoom {
-  IO.Socket _socket = IO.io("https://uoi.bachasoftware.com", {
-    'path': '/socket-chat/',
+  static var URL=DotEnv().env['REACT_APP_URL_SOCKETIO'];
+  IO.Socket _socket = IO.io('http://192.168.2.250:3005', {
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:logindemo/src/provider/auth_provider.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
@@ -13,7 +14,10 @@ import 'package:logindemo/src/screen/signup_screen.dart';
 import 'package:logindemo/src/screen/splaps_screen.dart';
 import 'package:provider/provider.dart';
 
-void main() => runApp(MyApp());
+void main()async{
+  await DotEnv().load('.env');
+  runApp(MyApp());
+}
 
 
 class MyApp extends StatelessWidget {
@@ -27,7 +31,6 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProxyProvider<Auth, UserProvider>(
             update: (ctx, auth, _) => UserProvider(auth.token, auth.idFome),
           ),
-
         ],
         child: Consumer<Auth>(
             builder: (ctx, auth, _) => MaterialApp(

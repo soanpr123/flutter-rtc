@@ -65,6 +65,7 @@ class UserProvider with ChangeNotifier {
     } catch (e) {
       throw e;
     }
+
   }
   @override
   void dispose() {
