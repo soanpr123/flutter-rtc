@@ -14,11 +14,10 @@ import 'package:logindemo/src/screen/signup_screen.dart';
 import 'package:logindemo/src/screen/splaps_screen.dart';
 import 'package:provider/provider.dart';
 
-void main()async{
+void main() async {
   await DotEnv().load('.env');
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -29,7 +28,8 @@ class MyApp extends StatelessWidget {
             value: Auth(),
           ),
           ChangeNotifierProxyProvider<Auth, UserProvider>(
-            update: (ctx, auth, _) => UserProvider(auth.token, auth.idFome),
+            update: (ctx, auth, previus) => UserProvider(
+                auth.token, previus == null ? [] : previus.users, auth.idFome),
           ),
         ],
         child: Consumer<Auth>(
@@ -39,7 +39,9 @@ class MyApp extends StatelessWidget {
                     accentColor: Color(0xFFFEF9EB),
                   ),
                   home: auth.isAuth
-                      ? Navigation()
+                      ? Navigation(
+                          token: auth.token,
+                        )
                       : FutureBuilder(
                           future: auth.autologin(),
                           builder: (context, authSnapshot) =>

@@ -53,13 +53,14 @@ SimpleWebSocket _socket;
       _token = token;
       _idFome=id;
       _socket=SimpleWebSocket();
-      await _socket.connect('http://192.168.2.250:3005',_token);
+      await _socket.connect('http://192.168.2.248:3005',_token);
       notifyListeners();
     } else {
       _token == null;
       _account.clear();
       ToastShare().getToast("Mật Khẩu Không chính xác");
       notifyListeners();
+
     }
   }
 

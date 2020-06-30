@@ -245,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 30.0,
             color: Colors.white,
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>CallSample(id: info['id'],token:info['token'],name:info['name'],)));
+//              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>CallSample(info['token'])));
             },
           ),
           IconButton(

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:logindemo/src/style/toast.dart';
 import 'package:logindemo/utilities/device_info.dart';
-
+import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import '../socket_client.dart';
 
 enum SignalingState {
@@ -29,12 +29,12 @@ typedef void DataChannelMessageCallback(
 typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
-  JsonEncoder _encoder = new JsonEncoder();
-  JsonDecoder _decoder = new JsonDecoder();
-  SimpleWebSocket _socket;
-  var _host;
-  var _port = 3000;
+  IO.Socket _socket = IO.io('http://192.168.2.248:3005', {
+//    'path': '/socket-chat/',
+    'transports': ['polling'],
+  });
   RTCPeerConnection peerConnection;
+  var _peerConnections = new Map<String, RTCPeerConnection>();
   RTCDataChannel dataChannel;
   var _remoteCandidates = [];
   var _turnCredential;
@@ -49,27 +49,26 @@ class Signaling {
   StreamStateCallback onRemoveRemoteStream;
   OtherEventCallback onPeersUpdate;
   OtherEventCallback onEventUpdate;
+  JoinRoom _joinRoom;
   DataChannelMessageCallback onDataChannelMessage;
   DataChannelCallback onDataChannel;
-
-  Signaling(this.idTo, this.token, this.displayname);
-
   Map<String, dynamic> _iceServers = {
-    'iceServers': [{
-      'urls': ["stun:stun.l.google.com:19302"]
-    }, {
-      'username': "another_user",
-      'credential': "another_password",
-      'urls': [
-        "turn:117.6.135.148:8579?transport=udp",
-        "turn:117.6.135.148:8579?transport=tcp",
-      ]
-    }
+    'iceServers': [
+      {
+        'urls': ["stun:stun.l.google.com:19302"]
+      },
+      {
+        'username': "another_user",
+        'credential': "another_password",
+        'urls': [
+          "turn:117.6.135.148:8579?transport=udp",
+          "turn:117.6.135.148:8579?transport=tcp",
+        ]
+      }
     ]
   };
-void JoinCall(int idFrom,String token,String name)async{
-  await _getMediaToJoin(idFrom, token, name);
-}
+
+  Signaling(this.token,this._joinRoom);
   final Map<String, dynamic> _config = {
     'mandatory': {},
     'optional': [
@@ -93,7 +92,6 @@ void JoinCall(int idFrom,String token,String name)async{
     'optional': [],
   };
 
-
   close() {
     if (_localStream != null) {
       _localStream.dispose();
@@ -112,16 +110,13 @@ void JoinCall(int idFrom,String token,String name)async{
     }
   }
 
-  void invite(String peer_id, String media, use_screen) {
+  void invite(int peer_id, String media, use_screen) {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
-
-    _createPeerConnection(peer_id, media, use_screen, isHost: true).then((pc) {
+//_getMediatoCall(peer_id, token);
+    _createPeerConnection(use_screen).then((pc) {
       peerConnection = pc;
-      if (media == 'data') {
-        _createDataChannel(peer_id, pc);
-      }
       _createOffer(peer_id, pc, media);
     });
   }
@@ -144,7 +139,8 @@ void JoinCall(int idFrom,String token,String name)async{
     }
     _remoteCandidates.clear();
   }
-  Future<MediaStream> createStream(media, user_screen) async {
+
+  Future<MediaStream> createStream(user_screen) async {
     final Map<String, dynamic> mediaConstraints = {
       'audio': true,
       'video': {
@@ -168,24 +164,19 @@ void JoinCall(int idFrom,String token,String name)async{
     return stream;
   }
 
-  _createPeerConnection(id, media, user_screen, {isHost = false}) async {
-    if (media != 'data') _localStream = await createStream(media, user_screen);
+  _createPeerConnection(user_screen) async {
+   _localStream = await createStream(user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
-    if (media != 'data') pc.addStream(_localStream);
+    pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
-      final iceCandidate = {
-        'sdpMLineIndex': candidate.sdpMlineIndex,
-        'sdpMid': candidate.sdpMid,
-        'candidate': candidate.candidate,
-      };
-      _socket.socket.emit('candidate', {
-        'type': 'candidate',
-        'label': candidate.sdpMlineIndex,
-        'id': candidate.sdpMid,
-        'candidate': candidate.candidate,
-        'idTo': id,
-        'token':token,
-      });
+_socket.emit('candidate',{
+  'type': 'candidate',
+  'label': candidate.sdpMlineIndex,
+  'id': candidate.sdpMid,
+  'candidate': candidate.candidate,
+  'idTo': 580,
+  'token': token
+});
     };
 
     pc.onIceConnectionState = (state) {
@@ -198,7 +189,8 @@ void JoinCall(int idFrom,String token,String name)async{
 
     pc.onAddStream = (stream) {
       if (this.onAddRemoteStream != null) this.onAddRemoteStream(stream);
-      //_remoteStreams.add(stream);
+//      _remoteStreams.add(stream);
+
     };
 
     pc.onRemoveStream = (stream) {
@@ -207,112 +199,60 @@ void JoinCall(int idFrom,String token,String name)async{
         return (it.id == stream.id);
       });
     };
-
-    pc.onDataChannel = (channel) {
-      _addDataChannel(id, channel);
-    };
-
     return pc;
   }
-  void onMessage(tag, message) async {
-    switch (tag) {
-      case OFFER_EVENT:
-        {
-          var id = 'caller';
-          var description = message;
-          var media = 'call';
 
-          if (this.onStateChange != null) {
-            this.onStateChange(SignalingState.CallStateNew);
-          }
-
-          var pc = await _createPeerConnection(id, media, false);
-          peerConnection = pc;
-          await pc.setRemoteDescription(new RTCSessionDescription(
-              description['sdp'], description['type']));
-          await _createAnswer(id, pc, media);
-          if (this._remoteCandidates.length > 0) {
-            _remoteCandidates.forEach((candidate) async {
-              await pc.addCandidate(candidate);
-            });
-            _remoteCandidates.clear();
-          }
-        }
-        break;
-      case ANSWER_EVENT:
-        {
-          var description = message;
-          var pc = peerConnection;
-          if (pc != null) {
-            await pc.setRemoteDescription(new RTCSessionDescription(
-                description['sdp'], description['type']));
-          }
-        }
-        break;
-      case ICE_CANDIDATE_EVENT:
-        {
-          var candidateMap = message;
-          if (candidateMap != null) {
-            var pc = peerConnection;
-            RTCIceCandidate candidate = new RTCIceCandidate(
-                candidateMap['candidate'],
-                candidateMap['sdpMid'],
-                candidateMap['sdpMLineIndex']);
-            if (pc != null) {
-              await pc.addCandidate(candidate);
-            } else {
-              _remoteCandidates.add(candidate);
-            }
-          }
-        }
-        break;
-      case CLIENT_ID_EVENT:
-        {
-          if (this.onEventUpdate != null) {
-            this.onEventUpdate({'clientId': 'Id: $message'});
-          }
-        }
-        break;
-      default:
-        break;
-    }
+  void onMessage(String token){
+//    _createPeerConnection(false);
+  _socket.on('offer',(data)async{
+      var media = 'video';
+      var id=data['idFrom'];
+      var pc = await _createPeerConnection(false);
+      peerConnection = pc;
+      await pc.setRemoteDescription(new RTCSessionDescription(
+          data['sdp']['sdp'], data['sdp']['type']));
+      await _createAnswer(id, pc, media,token);
+      if (this._remoteCandidates.length > 0) {
+        _remoteCandidates.forEach((candidate) async {
+          await pc.addCandidate(candidate);
+        });
+        _remoteCandidates.clear();
+      }
+  });
   }
-  _createAnswer(String id, RTCPeerConnection pc, media) async {
+
+  _createAnswer(int id, RTCPeerConnection pc, media,String token) async {
     try {
       RTCSessionDescription s = await pc
           .createAnswer(media == 'data' ? _dc_constraints : _constraints);
       pc.setLocalDescription(s);
-
-      final description = {'sdp': s.sdp,'idTo': idTo,'token':token,'display_name':displayname};
-      emitAnswerEvent(description);
+print("answer : ${s.type}");
+      final description = {
+        'sdp': s.sdp,
+        'idTo': idTo,
+        'token': token,
+        'display_name': displayname
+      };
+_socket.emit('answer',{
+  'sdp':{'sdp':s.sdp,'type':s.type}, 'idTo': id, 'token': token
+});
     } catch (e) {
       print(e.toString());
     }
   }
-  _addDataChannel(id, RTCDataChannel channel) {
-    channel.onDataChannelState = (e) {};
-    channel.onMessage = (RTCDataChannelMessage data) {
-      if (this.onDataChannelMessage != null)
-        this.onDataChannelMessage(channel, data);
-    };
-    dataChannel = channel;
 
-    if (this.onDataChannel != null) this.onDataChannel(channel);
-  }
-
-  _createDataChannel(id, RTCPeerConnection pc, {label: 'fileTransfer'}) async {
-    RTCDataChannelInit dataChannelDict = new RTCDataChannelInit();
-    RTCDataChannel channel = await pc.createDataChannel(label, dataChannelDict);
-    _addDataChannel(id, channel);
-  }
-
-  _createOffer(String id, RTCPeerConnection pc, String media) async {
+  _createOffer(int id, RTCPeerConnection pc, String media) async {
     try {
       RTCSessionDescription s = await pc
           .createOffer(media == 'data' ? _dc_constraints : _constraints);
       pc.setLocalDescription(s);
-      final description = {'sdp': s.sdp, 'idTo': idTo,'token':token,'display_name':displayname};
-      emitOfferEvent(description);
+      final description = {
+        'sdp': s.sdp,
+        'idTo': idTo,
+        'token': token,
+        'display_name': displayname
+      };
+//      emitOfferEvent(description);
     } catch (e) {
       print(e.toString());
     }
@@ -321,72 +261,10 @@ void JoinCall(int idFrom,String token,String name)async{
   hasUserMedia() {
     return navigator.getUserMedia;
   }
-  void connect() async {
-    _socket = SimpleWebSocket();
-    _socket.onOpen = () {
-      print('onOpen');
-      this?.onStateChange(SignalingState.ConnectionOpen);
-      print({'name': DeviceInfo.label, 'user_agent': DeviceInfo.userAgent});
-    };
-
-    _socket.onMessage = (tag, message) {
-      print('Received data: $tag - $message');
-      this.onMessage(tag, message);
-    };
-
-    _socket.onClose = (int code, String reason) {
-      print('Closed by server [$code => $reason]!');
-      if (this.onStateChange != null) {
-        this.onStateChange(SignalingState.ConnectionClosed);
-      }
-    };
-  }
-  _getMediaToJoin(int idFrom,String token,String name) async {
-    var Stream;
-    if (hasUserMedia()) {
-      try {
-        Stream = await navigator.getUserMedia({
-          'audio': true,
-          'video': {
-            'mandatory': {
-              'minWidth':
-                  '640', // Provide your own width, height and frame rate here
-              'minHeight': '480',
-              'minFrameRate': '30',
-            },
-            'facingMode': 'user',
-            'optional': [],
-          }
-        });
-      } catch (e) {
-        try{
-          Stream= await navigator.getUserMedia({'audio':false,'video':false});
-        }catch(e){
-          Stream=null;
-          _socket.socket.emit('refuseCall', { "idTo": idFrom, "token": token, "message": 'Refuse_NotDevice' });
-        }
-        if(Stream){
-          _socket.socket.emit('ready', { 'idTo': idFrom, token: token, 'display_name': name });
-        }
-      }
-    }else{
-      ToastShare().getToast("WebRTC is not supported by your devices system version");
-      _socket.socket.emit('refuseCall', { "idTo": idFrom, "token": token, "message": 'Refuse_NotDevice' });
-    }
-
   }
 
-  _send(event, data) {
-    _socket.send(event, data);
-  }
-  emitAnswerEvent(description) {
-    _send(ANSWER_EVENT, {'description': description});
-  }
-  emitOfferEvent(description) {
-    _send(OFFER_EVENT, {'description': description});
-  }
-  emitIceCandidateEvent(isHost, candidate) {
-    _send(ICE_CANDIDATE_EVENT, {'isHost': isHost, 'candidate': candidate});
-  }
-}
+
+
+
+
 enum handlePage { connecting, online, not_online }

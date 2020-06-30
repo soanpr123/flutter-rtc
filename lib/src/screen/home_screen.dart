@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_simple_dependency_injection/injector.dart';
+import 'package:logindemo/src/models/invitcall.dart';
 import 'package:logindemo/src/models/user.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
+import 'package:logindemo/src/resources/call_video/signaling.dart';
+import 'package:logindemo/src/resources/socket_client.dart';
+import 'package:logindemo/src/screen/call_video_screen.dart';
+import 'package:logindemo/src/widgets/dialog_messenger.dart';
 import 'package:logindemo/src/widgets/friend_item.dart';
 import 'package:provider/provider.dart';
 import 'package:getflutter/getflutter.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routername = "/home";
-
+  final String token;
+  HomeScreen({this.token});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -18,8 +24,22 @@ class _HomeScreenState extends State<HomeScreen> {
   var isInit = true;
   var isLoading = false;
   var isSearching = false;
+  JoinRoom _joinRoom;
+  Signaling _signaling;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Future<void> _refrestProducts(BuildContext context) async {
     await Provider.of<UserProvider>(context, listen: false).fetchUser();
+  }
+
+  @override
+  void initState() {
+    _joinRoom = JoinRoom();
+    _joinRoom.invitCalls(invitCall);
+    _joinRoom.ready();
+    _joinRoom.offerEvent(Offer);
+    _signaling=Signaling(widget.token,_joinRoom);
+    _signaling.onMessage(widget.token);
+    super.initState();
   }
 
   @override
@@ -37,16 +57,15 @@ class _HomeScreenState extends State<HomeScreen> {
     isInit = false;
     super.didChangeDependencies();
   }
-@override
-  void dispose() {
-  Provider.of<UserProvider>(context).dispose();
-    super.dispose();
-  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final itemUser = Provider.of<UserProvider>(context, listen: false).nameus;
     List<String> list = [];
     return Scaffold(
+      key: _scaffoldKey,
         backgroundColor: Theme.of(context).primaryColor,
         appBar: AppBar(
           title: !isSearching
@@ -126,4 +145,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ));
   }
+
+  invitCall(data) {
+    print("invitCall là: $data");
+    if (null == data || data.toString().isEmpty) {
+      return;
+    }
+    InvitcallClass _invitcallClass = InvitcallClass.fromJson(data);
+    var decode = Uri.decodeFull(_invitcallClass.displayName);
+    print("tên người gọi : $decode");
+    print("ID người gọi : ${_invitcallClass.idFrom}");
+   setState(() {
+
+//    _joinRoom.send('refuseCall', {
+//      'idTo': _invitcallClass.idFrom,
+//      'token': widget.token,
+//      'message': 'already in a call'
+//    });
+     DialogShow().dialogShow("Calling for you",decode, context,_invitcallClass.idFrom,widget.token,_joinRoom);
+   });
+  }
+
+
+  Offer(data) {
+   setState(() {
+     print('offer là  : $data');
+     Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>CallSample(widget.token)));
+   });
+  }
 }
+
+

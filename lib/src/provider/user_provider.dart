@@ -15,7 +15,7 @@ class UserProvider with ChangeNotifier {
 
   List<searchUser> get search => _search;
 
-  UserProvider(this.token,this.idfome);
+  UserProvider(this.token,this._users,this.idfome);
   Map<String, String> requestHeaders = {
     'Accept': 'application/json;charset=UTF-8',
     'Content-type': 'application/json;charset=UTF-8'
@@ -36,7 +36,6 @@ class UserProvider with ChangeNotifier {
       if (responseData == null) {
         return;
       }
-
       List<DatumUser> loaderUser = [];
       List<String> loaderNameUser = [];
       UserMd userMd = UserMd.fromJson(responseData);
@@ -66,11 +65,6 @@ class UserProvider with ChangeNotifier {
       throw e;
     }
 
-  }
-  @override
-  void dispose() {
-  fetchUser();
-    super.dispose();
   }
 }
 

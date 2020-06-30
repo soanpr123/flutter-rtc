@@ -5,6 +5,8 @@ import 'package:logindemo/src/screen/home_screen.dart';
 import 'package:logindemo/src/screen/profile_screen.dart';
 
 class Navigation extends StatefulWidget {
+  final String token;
+  Navigation({this.token});
   @override
   _NavigationState createState() => _NavigationState();
 }
@@ -22,7 +24,7 @@ class _NavigationState extends State<Navigation> {
 //      backgroundColor: Theme.of(context).primaryColor,
       body: Center(
         child:[
-          new HomeScreen(),
+          new HomeScreen(token: widget.token,),
           new AddFriendScreen(),
           new ProfileScreen(),
         ].elementAt(selectedIndex),
