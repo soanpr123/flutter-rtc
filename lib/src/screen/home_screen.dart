@@ -32,17 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void initState() {
-    _joinRoom = JoinRoom();
-    _joinRoom.invitCalls(invitCall);
-    _joinRoom.ready();
-    _joinRoom.offerEvent(Offer);
-    _signaling=Signaling(widget.token,_joinRoom);
-    _signaling.onMessage(widget.token);
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() {
     if (isInit) {
       setState(() {
@@ -146,33 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  invitCall(data) {
-    print("invitCall là: $data");
-    if (null == data || data.toString().isEmpty) {
-      return;
-    }
-    InvitcallClass _invitcallClass = InvitcallClass.fromJson(data);
-    var decode = Uri.decodeFull(_invitcallClass.displayName);
-    print("tên người gọi : $decode");
-    print("ID người gọi : ${_invitcallClass.idFrom}");
-   setState(() {
-
-//    _joinRoom.send('refuseCall', {
-//      'idTo': _invitcallClass.idFrom,
-//      'token': widget.token,
-//      'message': 'already in a call'
-//    });
-     DialogShow().dialogShow("Calling for you",decode, context,_invitcallClass.idFrom,widget.token,_joinRoom);
-   });
-  }
 
 
-  Offer(data) {
-   setState(() {
-     print('offer là  : $data');
-     Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>CallSample(widget.token)));
-   });
-  }
+
 }
 
 

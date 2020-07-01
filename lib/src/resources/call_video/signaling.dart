@@ -29,8 +29,8 @@ typedef void DataChannelMessageCallback(
 typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
-  IO.Socket _socket = IO.io('http://192.168.2.248:3005', {
-//    'path': '/socket-chat/',
+  IO.Socket _socket = IO.io('https://uoi.bachasoftware.com', {
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
@@ -178,21 +178,11 @@ _socket.emit('candidate',{
   'token': token
 });
     };
-
-    pc.onIceConnectionState = (state) {
-      print('onIceConnectionState $state');
-      if (state == RTCIceConnectionState.RTCIceConnectionStateClosed ||
-          state == RTCIceConnectionState.RTCIceConnectionStateFailed) {
-        bye();
-      }
-    };
-
+    pc.onIceConnectionState = (state) {};
     pc.onAddStream = (stream) {
       if (this.onAddRemoteStream != null) this.onAddRemoteStream(stream);
 //      _remoteStreams.add(stream);
-
     };
-
     pc.onRemoveStream = (stream) {
       if (this.onRemoveRemoteStream != null) this.onRemoveRemoteStream(stream);
       _remoteStreams.removeWhere((it) {
@@ -207,6 +197,10 @@ _socket.emit('candidate',{
   _socket.on('offer',(data)async{
       var media = 'video';
       var id=data['idFrom'];
+
+      if (this.onStateChange != null) {
+        this.onStateChange(SignalingState.CallStateNew);
+      }
       var pc = await _createPeerConnection(false);
       peerConnection = pc;
       await pc.setRemoteDescription(new RTCSessionDescription(

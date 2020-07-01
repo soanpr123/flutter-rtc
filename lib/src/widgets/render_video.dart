@@ -1,33 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/rtc_video_view.dart';
+import 'package:logindemo/src/resources/call_video/signaling.dart';
+import 'package:logindemo/src/resources/socket_client.dart';
 
 class RenderVideo extends StatefulWidget {
-
+  final String token;
+  RenderVideo(this.token);
   @override
   _RenderVideoState createState() => _RenderVideoState();
 }
 
 class _RenderVideoState extends State<RenderVideo> {
-  RTCVideoRenderer _localRenderer = new RTCVideoRenderer();
+  Signaling _signaling;
+  JoinRoom _joinRoom;
+  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  bool _inCalling = false;
 
-  RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();
-bool _inCalling= true;
+  @override
+  void initState() {
+    super.initState();
+    _joinRoom = JoinRoom();
+    initRenderers();
+    _connect();
+  }
+
   initRenderers() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
   }
 
   @override
-  deactivate() {
+  void deactivate() {
     super.deactivate();
+    if (_signaling != null) _signaling.close();
     _localRenderer.dispose();
     _remoteRenderer.dispose();
   }
-@override
-  void initState() {
-  initRenderers();
-    super.initState();
+
+  void _connect() async {
+    if (_signaling == null) {
+      _signaling = Signaling(widget.token, _joinRoom)..onMessage(widget.token);
+
+      _signaling.onStateChange = (SignalingState state) {
+        switch (state) {
+          case SignalingState.CallStateNew:
+            this.setState(() {
+              _inCalling = true;
+            });
+            break;
+          case SignalingState.CallStateBye:
+            this.setState(() {
+              _localRenderer.srcObject = null;
+              _remoteRenderer.srcObject = null;
+              _inCalling = false;
+            });
+            break;
+          case SignalingState.CallStateInvite:
+          case SignalingState.CallStateConnected:
+          case SignalingState.CallStateRinging:
+          case SignalingState.ConnectionClosed:
+          case SignalingState.ConnectionError:
+          case SignalingState.ConnectionOpen:
+            break;
+        }
+      };
+
+      _signaling.onPeersUpdate = ((event) {
+        this.setState(() {
+//          _selfId = event['self'];
+//          _peers = event['peers'];
+        });
+      });
+
+      _signaling.onLocalStream = ((stream) {
+        _localRenderer.srcObject = stream;
+      });
+
+      _signaling.onAddRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = stream;
+      });
+
+      _signaling.onRemoveRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = null;
+      });
+    }
   }
+
+  _hangUp() {
+    if (_signaling != null) {
+      _signaling.bye();
+    }
+  }
+
+  _switchCamera() {
+    _signaling.switchCamera();
+  }
+
+  _muteMic() {}
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -41,28 +111,29 @@ bool _inCalling= true;
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: new SizedBox(
-          width: 200.0,
-          child: new Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FloatingActionButton(
-                  child: const Icon(Icons.switch_camera),
-                  onPressed: (){},
-                ),
-                FloatingActionButton(
-                  onPressed:  (){},
-                  tooltip: 'Hangup',
-                  child: new Icon(Icons.call_end),
-                  backgroundColor: Colors.pink,
-                ),
-                FloatingActionButton(
-                  child: const Icon(Icons.mic_off),
-                  onPressed:  (){},
-                )
-              ])),
-
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: _inCalling
+            ? SizedBox(
+            width: 200.0,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton(
+                    child: const Icon(Icons.switch_camera),
+                    onPressed: _switchCamera,
+                  ),
+                  FloatingActionButton(
+                    onPressed: _hangUp,
+                    tooltip: 'Hangup',
+                    child: Icon(Icons.call_end),
+                    backgroundColor: Colors.pink,
+                  ),
+                  FloatingActionButton(
+                    child: const Icon(Icons.mic_off),
+                    onPressed: _muteMic,
+                  )
+                ]))
+            : null,
       body: _inCalling
           ? OrientationBuilder(builder: (context, orientation) {
         return new Container(
