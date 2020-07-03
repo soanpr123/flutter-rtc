@@ -42,13 +42,12 @@ class _FrientItemsState extends State<FrientItems> {
         GestureDetector(
           onTap: () {
             Navigator.of(context)
-                .pushNamed(ChatScreen.routerName, arguments: {
-              'image': widget.imgeUrl,
-              'name': widget.disPlayname,
-              'idFome': widget.idFome,
-              'token': widget.token,
-              'id':widget.id
-            });
+                .push(MaterialPageRoute(builder: (BuildContext ctx)=>ChatScreen(
+              token: widget.token,
+              name: widget.disPlayname,
+              idForme: widget.idFome,
+              peerId: widget.id,
+            )));
 
            _joinRoom.joinRooms(widget.token, widget.id, widget.disPlayname);
           },

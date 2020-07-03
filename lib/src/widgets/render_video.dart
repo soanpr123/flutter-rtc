@@ -19,10 +19,11 @@ class _RenderVideoState extends State<RenderVideo> {
 
   @override
   void initState() {
-    super.initState();
     _joinRoom = JoinRoom();
     initRenderers();
     _connect();
+    super.initState();
+
   }
 
   initRenderers() async {
@@ -40,8 +41,7 @@ class _RenderVideoState extends State<RenderVideo> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = Signaling(widget.token, _joinRoom)..onMessage(widget.token);
-
+      _signaling = Signaling(widget.token)..connect();
       _signaling.onStateChange = (SignalingState state) {
         switch (state) {
           case SignalingState.CallStateNew:
@@ -65,14 +65,12 @@ class _RenderVideoState extends State<RenderVideo> {
             break;
         }
       };
-
       _signaling.onPeersUpdate = ((event) {
         this.setState(() {
 //          _selfId = event['self'];
 //          _peers = event['peers'];
         });
       });
-
       _signaling.onLocalStream = ((stream) {
         _localRenderer.srcObject = stream;
       });
@@ -84,6 +82,7 @@ class _RenderVideoState extends State<RenderVideo> {
       _signaling.onRemoveRemoteStream = ((stream) {
         _remoteRenderer.srcObject = null;
       });
+
     }
   }
 
@@ -101,19 +100,18 @@ class _RenderVideoState extends State<RenderVideo> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('P2P Call Sample'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: null,
-            tooltip: 'setup',
-          ),
-        ],
-      ),
+        appBar: new AppBar(
+          title: new Text('P2P Call Sample'),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: null,
+              tooltip: 'setup',
+            ),
+          ],
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: _inCalling
-            ? SizedBox(
+        floatingActionButton: SizedBox(
             width: 200.0,
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,40 +130,35 @@ class _RenderVideoState extends State<RenderVideo> {
                     child: const Icon(Icons.mic_off),
                     onPressed: _muteMic,
                   )
-                ]))
-            : null,
-      body: _inCalling
-          ? OrientationBuilder(builder: (context, orientation) {
-        return new Container(
-          child: new Stack(children: <Widget>[
-            new Positioned(
-                left: 0.0,
-                right: 0.0,
-                top: 0.0,
-                bottom: 0.0,
+                ])),
+        body: OrientationBuilder(builder: (context, orientation) {
+          return new Container(
+            child: new Stack(children: <Widget>[
+              new Positioned(
+                  left: 0.0,
+                  right: 0.0,
+                  top: 0.0,
+                  bottom: 0.0,
+                  child: new Container(
+                    margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: new RTCVideoView(_remoteRenderer),
+                    decoration: new BoxDecoration(color: Colors.black54),
+                  )),
+              new Positioned(
+                left: 20.0,
+                top: 20.0,
                 child: new Container(
-                  margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: new RTCVideoView(_remoteRenderer),
-                  decoration: new BoxDecoration(color: Colors.black54),
-                )),
-            new Positioned(
-              left: 20.0,
-              top: 20.0,
-              child: new Container(
-                width: orientation == Orientation.portrait ? 90.0 : 120.0,
-                height:
-                orientation == Orientation.portrait ? 120.0 : 90.0,
-                child: new RTCVideoView(_localRenderer),
-                decoration: new BoxDecoration(color: Colors.white),
+                  width: orientation == Orientation.portrait ? 90.0 : 120.0,
+                  height: orientation == Orientation.portrait ? 120.0 : 90.0,
+                  child: new RTCVideoView(_localRenderer),
+                  decoration: new BoxDecoration(color: Colors.white),
+                ),
               ),
-            ),
-          ]),
-        );
-      })
-          : new Center(child: Text('no video call'),
-      )
-    );
+            ]),
+          );
+        }));
   }
+
 }

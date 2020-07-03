@@ -7,13 +7,22 @@ import 'package:logindemo/src/models/response_message_model.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
 import 'package:logindemo/src/resources/call_video/signaling.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
-import 'package:logindemo/src/screen/call_video_screen.dart';
 import 'package:logindemo/src/widgets/render_video.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   static const routerName = '/Chat-screen';
+final String token;
+final String name;
+final int idForme;
+final int peerId;
+ChatScreen({
+    @required this.token,
+  @required this.name,
+  @required this.idForme,
+  @required this.peerId,
 
+});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -23,6 +32,9 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
+  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  bool _inCalling = false;
   Signaling _signaling;
   _buildMessage(Message message, bool isMe) {
     var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
@@ -128,6 +140,10 @@ class _ChatScreenState extends State<ChatScreen> {
     _joinRoom.setOnChatMessageReceivedListener(onChatMessageReceived);
     _joinRoom.setOnListener(onListerner);
     _chatListScrollToBottom();
+    _joinRoom = JoinRoom();
+//    _joinRoom.invitCalls(invitCall);
+    initRenderers();
+    _connect(widget.token);
     _chatMessages = List();
     _chatLVController = ScrollController(initialScrollOffset: 0.0);
     _chatTfController = TextEditingController();
@@ -146,6 +162,74 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   } //↓↓↓↓↓↓↓------get message in response------↓↓↓↓↓↓//
 
+  initRenderers() async {
+    await _localRenderer.initialize();
+    await _remoteRenderer.initialize();
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    if (_signaling != null) _signaling.close();
+    _localRenderer.dispose();
+    _remoteRenderer.dispose();
+  }
+
+  void _connect(String token) async {
+    if (_signaling == null) {
+      _signaling = Signaling(token)..connect();
+      _signaling.onStateChange = (SignalingState state) {
+        switch (state) {
+          case SignalingState.CallStateNew:
+            this.setState(() {
+              _inCalling = true;
+            });
+            break;
+          case SignalingState.CallStateBye:
+            this.setState(() {
+              _localRenderer.srcObject = null;
+              _remoteRenderer.srcObject = null;
+              _inCalling = false;
+            });
+            break;
+          case SignalingState.CallStateInvite:
+          case SignalingState.CallStateConnected:
+          case SignalingState.CallStateRinging:
+          case SignalingState.ConnectionClosed:
+          case SignalingState.ConnectionError:
+          case SignalingState.ConnectionOpen:
+            break;
+        }
+      };
+      _signaling.onLocalStream = ((stream) {
+        _localRenderer.srcObject = stream;
+      });
+
+      _signaling.onAddRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = stream;
+      });
+
+      _signaling.onRemoveRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = null;
+      });
+    }
+  }
+  _invitePeer(context, peerId, use_screen) async {
+    if (_signaling != null) {
+      _signaling.invite(peerId, 'video', use_screen);
+    }
+  }
+  _hangUp() {
+    if (_signaling != null) {
+      _signaling.bye();
+    }
+  }
+
+  _switchCamera() {
+    _signaling.switchCamera();
+  }
+
+  _muteMic() {}
   onChatMessageReceived(data) {
     print('onChatMessageReceived $data');
     if (null == data || data.toString().isEmpty) {
@@ -216,6 +300,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     }
   }
+
   //-------------------------------------done notification listener and update Listview------------------------//
 //  _invitePeer(context, peerId, use_screen) async {
 //    if (_signaling != null && peerId != _selfId) {
@@ -225,14 +310,12 @@ class _ChatScreenState extends State<ChatScreen> {
   //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-Build Ui chat-↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓//
   @override
   Widget build(BuildContext context) {
-    final info =
-        ModalRoute.of(context).settings.arguments as Map<String, Object>;
-    final id = Provider.of<UserProvider>(context).users;
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         title: Text(
-          info['name'],
+          widget.name,
           style: TextStyle(
             fontSize: 18.0,
             fontWeight: FontWeight.bold,
@@ -245,7 +328,7 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 30.0,
             color: Colors.white,
             onPressed: () {
-//              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>CallSample(info['token'])));
+            _invitePeer(context, widget.peerId, false);
             },
           ),
           IconButton(
@@ -256,44 +339,99 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30.0),
-                    topRight: Radius.circular(30.0),
-                  ),
-                ),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30.0),
-                      topRight: Radius.circular(30.0),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: _inCalling
+          ? SizedBox(
+              width: 200.0,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      child: const Icon(Icons.switch_camera),
+                      onPressed: _switchCamera,
                     ),
-                    child: ListView.builder(
-                      cacheExtent: 100,
-                      controller: _chatLVController,
-                      reverse: false,
-                      shrinkWrap: true,
-                      padding: EdgeInsets.only(top: 15.0),
-                      itemCount:
-                          _chatMessages == null ? 0 : _chatMessages.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final Message message = _chatMessages[index];
-                        final bool isMe = message.id == info['idFome'];
-                        return _buildMessage(message, isMe);
-                      },
-                    )),
+                    FloatingActionButton(
+                      onPressed: _hangUp,
+                      tooltip: 'Hangup',
+                      child: Icon(Icons.call_end),
+                      backgroundColor: Colors.pink,
+                    ),
+                    FloatingActionButton(
+                      child: const Icon(Icons.mic_off),
+                      onPressed: _muteMic,
+                    )
+                  ]))
+          : null,
+      body: _inCalling
+          ? OrientationBuilder(builder: (context, orientation) {
+              return new Container(
+                child: new Stack(children: <Widget>[
+                  new Positioned(
+                      left: 0.0,
+                      right: 0.0,
+                      top: 0.0,
+                      bottom: 0.0,
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      )),
+                  new Positioned(
+                    left: 20.0,
+                    top: 20.0,
+                    child: new Container(
+                      width: orientation == Orientation.portrait ? 90.0 : 120.0,
+                      height:
+                          orientation == Orientation.portrait ? 120.0 : 90.0,
+                      child: new RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.white),
+                    ),
+                  ),
+                  ]),
+              );
+            })
+          : GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30.0),
+                          topRight: Radius.circular(30.0),
+                        ),
+                      ),
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30.0),
+                            topRight: Radius.circular(30.0),
+                          ),
+                          child: ListView.builder(
+                            cacheExtent: 100,
+                            controller: _chatLVController,
+                            reverse: false,
+                            shrinkWrap: true,
+                            padding: EdgeInsets.only(top: 15.0),
+                            itemCount: _chatMessages == null
+                                ? 0
+                                : _chatMessages.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final Message message = _chatMessages[index];
+                              final bool isMe = message.id == widget.idForme;
+                              return _buildMessage(message, isMe);
+                            },
+                          )),
+                    ),
+                  ),
+                  _buildMessageComposer(
+                     widget.token, widget.name, widget.idForme),
+                ],
               ),
             ),
-            _buildMessageComposer(info['token'], info['name'], info['idFome']),
-          ],
-        ),
-      ),
     );
   }
 
@@ -307,9 +445,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _chatMessages.add(Message(
           id: id,
           message: text,
-          time: DateTime
-              .now()
-              .millisecondsSinceEpoch,
+          time: DateTime.now().millisecondsSinceEpoch,
           isReading: false,
           displayName: name,
         ));

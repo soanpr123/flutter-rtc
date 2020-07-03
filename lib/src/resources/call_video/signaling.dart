@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:logindemo/src/style/toast.dart';
+import 'package:logindemo/utilities/config.dart';
 import 'package:logindemo/utilities/device_info.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import '../socket_client.dart';
@@ -29,8 +30,8 @@ typedef void DataChannelMessageCallback(
 typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
-  IO.Socket _socket = IO.io('https://uoi.bachasoftware.com', {
-    'path': '/socket-chat/',
+  IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
@@ -41,6 +42,7 @@ class Signaling {
   int idTo;
   String token;
   String displayname;
+  JoinRoom _joinRoom;
   MediaStream _localStream;
   List<MediaStream> _remoteStreams;
   SignalingStateCallback onStateChange;
@@ -49,7 +51,6 @@ class Signaling {
   StreamStateCallback onRemoveRemoteStream;
   OtherEventCallback onPeersUpdate;
   OtherEventCallback onEventUpdate;
-  JoinRoom _joinRoom;
   DataChannelMessageCallback onDataChannelMessage;
   DataChannelCallback onDataChannel;
   Map<String, dynamic> _iceServers = {
@@ -68,7 +69,7 @@ class Signaling {
     ]
   };
 
-  Signaling(this.token,this._joinRoom);
+  Signaling(this.token);
   final Map<String, dynamic> _config = {
     'mandatory': {},
     'optional': [
@@ -114,11 +115,7 @@ class Signaling {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
-//_getMediatoCall(peer_id, token);
-    _createPeerConnection(use_screen).then((pc) {
-      peerConnection = pc;
-      _createOffer(peer_id, pc, media);
-    });
+    _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
   }
 
   void bye() {
@@ -165,18 +162,18 @@ class Signaling {
   }
 
   _createPeerConnection(user_screen) async {
-   _localStream = await createStream(user_screen);
+    _localStream = await createStream(user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
-_socket.emit('candidate',{
-  'type': 'candidate',
-  'label': candidate.sdpMlineIndex,
-  'id': candidate.sdpMid,
-  'candidate': candidate.candidate,
-  'idTo': 580,
-  'token': token
-});
+      _socket.emit('candidate', {
+        'type': 'candidate',
+        'label': candidate.sdpMlineIndex,
+        'id': candidate.sdpMid,
+        'candidate': candidate.candidate,
+        'idTo': 580,
+        'token': token
+      });
     };
     pc.onIceConnectionState = (state) {};
     pc.onAddStream = (stream) {
@@ -192,61 +189,92 @@ _socket.emit('candidate',{
     return pc;
   }
 
-  void onMessage(String token){
-//    _createPeerConnection(false);
-  _socket.on('offer',(data)async{
-      var media = 'video';
-      var id=data['idFrom'];
-
-      if (this.onStateChange != null) {
-        this.onStateChange(SignalingState.CallStateNew);
-      }
-      var pc = await _createPeerConnection(false);
-      peerConnection = pc;
-      await pc.setRemoteDescription(new RTCSessionDescription(
-          data['sdp']['sdp'], data['sdp']['type']));
-      await _createAnswer(id, pc, media,token);
-      if (this._remoteCandidates.length > 0) {
-        _remoteCandidates.forEach((candidate) async {
-          await pc.addCandidate(candidate);
-        });
-        _remoteCandidates.clear();
-      }
-  });
+  void onMessage(tag, data) async {
+    switch (tag) {
+      case OFFER_EVENT:
+        {
+          print("Data là :$data");
+          var media = 'video';
+          var id = data['idFrom'];
+          print("id là : $id");
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
+          var pc = await _createPeerConnection(false);
+          peerConnection = pc;
+          await pc.setRemoteDescription(new RTCSessionDescription(
+              data['sdp']['sdp'], data['sdp']['type']));
+          await _createAnswer(id, pc, media, token);
+          if (this._remoteCandidates.length > 0) {
+            _remoteCandidates.forEach((candidate) async {
+              await pc.addCandidate(candidate);
+            });
+            _remoteCandidates.clear();
+          }
+        }
+        break;
+      case ANSWER_EVENT:
+        {
+          print("answer là : $data");
+          _socket.emit(
+              'join_call_room', {'callRoom': data['callRoom'], 'token': token});
+          var pc = peerConnection;
+          if (pc != null) {
+            await pc.setRemoteDescription(new RTCSessionDescription(
+                data['sdp']['sdp'], data['sdp']['type']));
+          }
+        }
+        break;
+      case READY_EVENT:
+        {
+          print("ready là : $data");
+          _createPeerConnection(false).then((pc) {
+            peerConnection = pc;
+            _createOffer(data['idFrom'], pc, 'video', token);
+          });
+        }
+        break;
+    }
   }
 
-  _createAnswer(int id, RTCPeerConnection pc, media,String token) async {
+  void connect() {
+    _joinRoom = JoinRoom();
+    _joinRoom.offerEvent();
+    _joinRoom.answerEvent();
+    _joinRoom.readyrEvent();
+    _joinRoom.onMessage = (tag, message) {
+      print('Received data: $tag - $message');
+      this.onMessage(tag, message);
+    };
+  }
+
+  _createAnswer(int id, RTCPeerConnection pc, media, String token) async {
     try {
       RTCSessionDescription s = await pc
           .createAnswer(media == 'data' ? _dc_constraints : _constraints);
       pc.setLocalDescription(s);
-print("answer : ${s.type}");
-      final description = {
-        'sdp': s.sdp,
-        'idTo': idTo,
-        'token': token,
-        'display_name': displayname
-      };
-_socket.emit('answer',{
-  'sdp':{'sdp':s.sdp,'type':s.type}, 'idTo': id, 'token': token
-});
+      print("answer : ${s.type}");
+      _socket.emit('answer', {
+        'sdp': {'sdp': s.sdp, 'type': s.type},
+        'idTo': id,
+        'token': token
+      });
     } catch (e) {
       print(e.toString());
     }
   }
 
-  _createOffer(int id, RTCPeerConnection pc, String media) async {
+  _createOffer(int id, RTCPeerConnection pc, String media, String token) async {
     try {
       RTCSessionDescription s = await pc
           .createOffer(media == 'data' ? _dc_constraints : _constraints);
       pc.setLocalDescription(s);
-      final description = {
-        'sdp': s.sdp,
-        'idTo': idTo,
+      _socket.emit('offer', {
+        'sdp': {'sdp': s.sdp, 'type': s.type},
+        'idTo': id,
         'token': token,
-        'display_name': displayname
-      };
-//      emitOfferEvent(description);
+        'display_name': 'Đặng Hoàng Anh',
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -255,10 +283,6 @@ _socket.emit('answer',{
   hasUserMedia() {
     return navigator.getUserMedia;
   }
-  }
-
-
-
-
+}
 
 enum handlePage { connecting, online, not_online }

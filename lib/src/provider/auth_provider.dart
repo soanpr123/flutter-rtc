@@ -10,6 +10,7 @@ import 'package:logindemo/src/resources/socket_client.dart';
 
 
 import 'package:logindemo/src/style/toast.dart';
+import 'package:logindemo/utilities/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth with ChangeNotifier {
@@ -53,7 +54,7 @@ SimpleWebSocket _socket;
       _token = token;
       _idFome=id;
       _socket=SimpleWebSocket();
-      await _socket.connect('https://uoi.bachasoftware.com',_token);
+      await _socket.connect(Config.REACT_APP_URL_SOCKETIO,_token);
       notifyListeners();
     } else {
       _token == null;
@@ -66,7 +67,7 @@ SimpleWebSocket _socket;
 
 // ----------------------login to uoi---------------------------
   Future<void> _authenticate(String Email, String Password) async {
-    final url = "https://uoi.bachasoftware.com/api/login";
+    final url = Config.REACT_APP_API_URL+"/login";
     try {
       final response = await http.post(url,
           headers: requestHeaders,

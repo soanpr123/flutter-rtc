@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:logindemo/src/models/user.dart';
+import 'package:logindemo/utilities/config.dart';
 
 class UserProvider with ChangeNotifier {
   List<DatumUser> _users = [];
@@ -28,7 +29,7 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> fetchUser() async {
-    final url = 'https://uoi.bachasoftware.com/api/user/updateStatus';
+    final url = Config.REACT_APP_API_URL+'/user/updateStatus';
     try {
       final response = await http.post(url,
           headers: requestHeaders, body: json.encode({'token': token}));

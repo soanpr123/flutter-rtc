@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logindemo/src/models/message_model.dart';
+import 'package:logindemo/utilities/config.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import 'package:logging/logging.dart';
@@ -11,8 +12,9 @@ import 'package:logging/logging.dart';
 const CLIENT_ID_EVENT = 'client-id-event';
 const OFFER_EVENT = 'offer';
 const ANSWER_EVENT = 'answer';
+const READY_EVENT = 'ready';
 const ICE_CANDIDATE_EVENT = 'candidate';
-typedef void OnMessageCallback(String tag, dynamic msg);
+typedef void OnMessageCallback(String tag,dynamic msg);
 typedef void OnCloseCallback(int code, String reason);
 typedef void OnOpenCallback();
 
@@ -42,6 +44,7 @@ class SimpleWebSocket {
   OnOpenCallback onOpen;
   OnMessageCallback onMessage;
   OnCloseCallback onClose;
+  SimpleWebSocket();
   connect(String url, String token) async {
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
@@ -50,7 +53,7 @@ class SimpleWebSocket {
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-      'path': '/socket-chat/',
+//      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -85,21 +88,13 @@ class SimpleWebSocket {
       print("resp-header-event " + data.toString());
     });
     socket.on(CLIENT_ID_EVENT, (data) {
-      onMessage(CLIENT_ID_EVENT, data);
+      onMessage( CLIENT_ID_EVENT,data);
     });
 
-    socket.on(ANSWER_EVENT, (data) {
-      print("ANSWER_EVENT là : $data");
-    });
     socket.on(ICE_CANDIDATE_EVENT, (data) {
       print("Candicate là : $data");
     });
-    socket.on('ready', (data) {
-      print('Ready là: $data');
-    });
-    socket.on('offer', (data) {
-//this?.onMessage(data);
-    });
+
     socket.on('event', (data) => print("received " + data));
     socket.on('disconnect', (_) => print('disconnect'));
     socket.on('fromServer', (_) => print(_));
@@ -116,9 +111,9 @@ class SimpleWebSocket {
 }
 
 class JoinRoom {
-  static var URL = DotEnv().env['REACT_APP_URL_SOCKETIO'];
-  IO.Socket _socket = IO.io('https://uoi.bachasoftware.com', {
-    'path': '/socket-chat/',
+  OnMessageCallback onMessage;
+  IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 
@@ -165,10 +160,21 @@ class JoinRoom {
     });
   }
 
-  offerEvent(Function Offer) {
+  offerEvent() {
     _socket.on('offer', (data) {
       print('ofer là : $data');
-     Offer(data);
+  onMessage(OFFER_EVENT,data);
+    });
+  }
+  answerEvent() {
+    _socket.on('answer', (data) {
+      onMessage(ANSWER_EVENT,data);
+    });
+  }
+  readyrEvent() {
+    _socket.on('ready', (data) {
+      print('ready là : $data');
+      onMessage(READY_EVENT,data);
     });
   }
 

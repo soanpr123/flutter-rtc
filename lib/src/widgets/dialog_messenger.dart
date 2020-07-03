@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logindemo/src/resources/call_video/signaling.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
-import 'package:logindemo/src/screen/call_video_screen.dart';
+
 
 class DialogShow{
   dialogShow(String title,String name,BuildContext context,int idFrom,String token ,JoinRoom _joinromm){

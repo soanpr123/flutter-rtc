@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_simple_dependency_injection/injector.dart';
-import 'package:logindemo/src/models/invitcall.dart';
+
 import 'package:logindemo/src/models/user.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
-import 'package:logindemo/src/resources/call_video/signaling.dart';
-import 'package:logindemo/src/resources/socket_client.dart';
-import 'package:logindemo/src/screen/call_video_screen.dart';
-import 'package:logindemo/src/widgets/dialog_messenger.dart';
+
 import 'package:logindemo/src/widgets/friend_item.dart';
+import 'package:logindemo/src/widgets/render_video.dart';
 import 'package:provider/provider.dart';
 import 'package:getflutter/getflutter.dart';
 
@@ -24,8 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   var isInit = true;
   var isLoading = false;
   var isSearching = false;
-  JoinRoom _joinRoom;
-  Signaling _signaling;
+  RenderVideo _renderVideo;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Future<void> _refrestProducts(BuildContext context) async {
     await Provider.of<UserProvider>(context, listen: false).fetchUser();

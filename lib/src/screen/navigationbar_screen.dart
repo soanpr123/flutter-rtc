@@ -8,6 +8,7 @@ import 'package:logindemo/src/screen/add_friend_screen.dart';
 import 'package:logindemo/src/screen/home_screen.dart';
 import 'package:logindemo/src/screen/profile_screen.dart';
 import 'package:logindemo/src/widgets/dialog_messenger.dart';
+import 'package:logindemo/src/widgets/render_video.dart';
 
 class Navigation extends StatefulWidget {
   final String token;
@@ -31,11 +32,12 @@ class _NavigationState extends State<Navigation> {
 
   @override
   void initState() {
-    super.initState();
     _joinRoom = JoinRoom();
-    initRenderers();
     _joinRoom.invitCalls(invitCall);
+    initRenderers();
     _connect();
+    super.initState();
+
   }
 
   initRenderers() async {
@@ -53,8 +55,7 @@ class _NavigationState extends State<Navigation> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = Signaling(widget.token, _joinRoom)..onMessage(widget.token);
-
+      _signaling = Signaling(widget.token)..connect();
       _signaling.onStateChange = (SignalingState state) {
         switch (state) {
           case SignalingState.CallStateNew:
@@ -78,14 +79,12 @@ class _NavigationState extends State<Navigation> {
             break;
         }
       };
-
       _signaling.onPeersUpdate = ((event) {
         this.setState(() {
 //          _selfId = event['self'];
 //          _peers = event['peers'];
         });
       });
-
       _signaling.onLocalStream = ((stream) {
         _localRenderer.srcObject = stream;
       });
@@ -209,6 +208,7 @@ class _NavigationState extends State<Navigation> {
             ),
     );
   }
+
   invitCall(data) {
     print("invitCall là: $data");
     if (null == data || data.toString().isEmpty) {
@@ -219,13 +219,13 @@ class _NavigationState extends State<Navigation> {
     print("tên người gọi : $decode");
     print("ID người gọi : ${_invitcallClass.idFrom}");
     setState(() {
-
 //    _joinRoom.send('refuseCall', {
 //      'idTo': _invitcallClass.idFrom,
 //      'token': widget.token,
 //      'message': 'already in a call'
 //    });
-      DialogShow().dialogShow("Calling for you",decode, context,_invitcallClass.idFrom,widget.token,_joinRoom);
+      DialogShow().dialogShow("Calling for you", decode, context,
+          _invitcallClass.idFrom, widget.token, _joinRoom);
     });
   }
 }
