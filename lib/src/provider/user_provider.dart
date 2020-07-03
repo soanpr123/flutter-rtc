@@ -22,11 +22,6 @@ class UserProvider with ChangeNotifier {
     'Content-type': 'application/json;charset=UTF-8'
   };
 
-  static String utf8convert(String text) {
-    var decode = Uri.decodeFull(text);
-    print("Tên đây là : $decode");
-    return decode;
-  }
 
   Future<void> fetchUser() async {
     final url = Config.REACT_APP_API_URL+'/user/updateStatus';

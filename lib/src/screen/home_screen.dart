@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:logindemo/src/models/user.dart';
+import 'package:logindemo/src/provider/profile_user_provider.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
 
 import 'package:logindemo/src/widgets/friend_item.dart';
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         isLoading = true;
       });
+      Provider.of<ProfileUser>(context).fetchUser(widget.token);
       Provider.of<UserProvider>(context).fetchUser().then((_) {
         setState(() {
           isLoading = false;
@@ -47,7 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final itemUser = Provider.of<UserProvider>(context, listen: false).nameus;
+    final profile = Provider.of<ProfileUser>(context, listen: false).displayName;
+
     List<String> list = [];
     return Scaffold(
       key: _scaffoldKey,
@@ -123,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   token: userpro.users[index].token,
                                   id: userpro.users[index].id,
                                   idFome: userpro.users[index].idFome,
+                              displayName: profile,
                                 ),
                             itemCount: userpro.users.length),
                       ),

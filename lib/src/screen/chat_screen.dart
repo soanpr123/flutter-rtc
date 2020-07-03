@@ -14,6 +14,7 @@ class ChatScreen extends StatefulWidget {
   static const routerName = '/Chat-screen';
 final String token;
 final String name;
+final String displayName;
 final int idForme;
 final int peerId;
 ChatScreen({
@@ -21,6 +22,7 @@ ChatScreen({
   @required this.name,
   @required this.idForme,
   @required this.peerId,
+  @required this.displayName,
 
 });
   @override
@@ -216,7 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
   _invitePeer(context, peerId, use_screen) async {
     if (_signaling != null) {
-      _signaling.invite(peerId, 'video', use_screen);
+      _signaling.invite(peerId, 'video', use_screen,widget.displayName);
     }
   }
   _hangUp() {

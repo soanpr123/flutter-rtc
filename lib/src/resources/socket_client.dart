@@ -180,7 +180,7 @@ class JoinRoom {
 
   Join(int idFrom, String token, String name) {
     _socket.emit('ready',
-        {'idTo': idFrom, 'token': token, 'display_name': "Đặng Hoàng Anh"});
+        {'idTo': idFrom, 'token': token, 'display_name': name});
 
   }
 

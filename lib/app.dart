@@ -6,6 +6,7 @@ import 'package:flutter_webrtc/webrtc.dart';
 import 'package:logindemo/src/models/invitcall.dart';
 
 import 'package:logindemo/src/provider/auth_provider.dart';
+import 'package:logindemo/src/provider/profile_user_provider.dart';
 import 'package:logindemo/src/provider/user_provider.dart';
 import 'package:logindemo/src/resources/call_video/signaling.dart';
 import 'package:logindemo/src/resources/socket_client.dart';
@@ -32,6 +33,9 @@ class _MyAppState extends State<MyApp> {
         providers: [
           ChangeNotifierProvider.value(
             value: Auth(),
+          ),
+          ChangeNotifierProvider.value(
+              value: ProfileUser(),
           ),
           ChangeNotifierProxyProvider<Auth, UserProvider>(
             update: (ctx, auth, previus) => UserProvider(

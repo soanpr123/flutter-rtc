@@ -9,6 +9,7 @@ class FrientItems extends StatefulWidget {
   final String status;
   final String token;
   final int id;
+  final String displayName;
   final int idFome;
   FrientItems(
       {this.disPlayname,
@@ -16,7 +17,8 @@ class FrientItems extends StatefulWidget {
       this.status,
       this.token,
       this.id,
-      this.idFome});
+      this.idFome,
+      this.displayName});
 
   @override
   _FrientItemsState createState() => _FrientItemsState();
@@ -47,6 +49,7 @@ class _FrientItemsState extends State<FrientItems> {
               name: widget.disPlayname,
               idForme: widget.idFome,
               peerId: widget.id,
+              displayName: widget.displayName,
             )));
 
            _joinRoom.joinRooms(widget.token, widget.id, widget.disPlayname);

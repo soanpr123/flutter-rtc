@@ -111,11 +111,17 @@ class Signaling {
     }
   }
 
-  void invite(int peer_id, String media, use_screen) {
+  void invite(int peer_id, String media, use_screen,String name) {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
+    _socket.on('ready', (data){
+      _createPeerConnection(false).then((pc) {
+            peerConnection = pc;
+            _createOffer(data['idFrom'], pc, 'video', token,name);
+          });
+    });
   }
 
   void bye() {
@@ -225,15 +231,15 @@ class Signaling {
           }
         }
         break;
-      case READY_EVENT:
-        {
-          print("ready là : $data");
-          _createPeerConnection(false).then((pc) {
-            peerConnection = pc;
-            _createOffer(data['idFrom'], pc, 'video', token);
-          });
-        }
-        break;
+//      case READY_EVENT:
+//        {
+//          print("ready là : $data");
+//          _createPeerConnection(false).then((pc) {
+//            peerConnection = pc;
+//            _createOffer(data['idFrom'], pc, 'video', token);
+//          });
+//        }
+//        break;
     }
   }
 
@@ -264,7 +270,7 @@ class Signaling {
     }
   }
 
-  _createOffer(int id, RTCPeerConnection pc, String media, String token) async {
+  _createOffer(int id, RTCPeerConnection pc, String media, String token,String name) async {
     try {
       RTCSessionDescription s = await pc
           .createOffer(media == 'data' ? _dc_constraints : _constraints);
@@ -273,7 +279,7 @@ class Signaling {
         'sdp': {'sdp': s.sdp, 'type': s.type},
         'idTo': id,
         'token': token,
-        'display_name': 'Đặng Hoàng Anh',
+        'display_name': name,
       });
     } catch (e) {
       print(e.toString());
