@@ -10,6 +10,7 @@ const CLIENT_ID_EVENT = 'client-id-event';
 const OFFER_EVENT = 'offer';
 const ANSWER_EVENT = 'answer';
 const READY_EVENT = 'ready';
+const END_EVENT = 'endCall';
 const ICE_CANDIDATE_EVENT = 'candidate';
 typedef void OnMessageCallback(String tag,dynamic msg);
 typedef void OnCloseCallback(int code, String reason);
@@ -50,7 +51,7 @@ class SimpleWebSocket {
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-      'path': '/socket-chat/',
+//      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -110,7 +111,7 @@ class SimpleWebSocket {
 class JoinRoom {
   OnMessageCallback onMessage;
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-    'path': '/socket-chat/',
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 
@@ -180,7 +181,11 @@ class JoinRoom {
         {'idTo': idFrom, 'token': token, 'display_name': name});
 
   }
-
+encall(){
+    _socket.on('endCall', (data){
+      onMessage(END_EVENT,data);
+    });
+}
   send(event, data) {
     if (_socket != null) {
       _socket.emit(event, data);

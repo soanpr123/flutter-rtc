@@ -4,6 +4,7 @@ import 'package:logindemo/src/bloc/profile_bloc.dart';
 import 'package:logindemo/src/model/friendMd.dart';
 import 'package:logindemo/src/model/invitcall.dart';
 import 'package:logindemo/src/model/user_profile_MD.dart';
+import 'package:logindemo/src/shared/component/connfig.dart';
 import 'package:logindemo/src/shared/component/socket_client.dart';
 import 'package:logindemo/src/shared/style/colors.dart';
 import 'package:logindemo/src/shared/widget/friend_item.dart';
@@ -13,6 +14,7 @@ class HomeScreen extends StatefulWidget {
   static const routername = "/home";
   final String token;
   final int idFome;
+
   HomeScreen({this.token, this.idFome});
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -23,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final profileBloc = ProfileBloc();
   String nameUser = '';
   JoinRoom _joinRoom;
+  SimpleWebSocket _simpleWebSocket = SimpleWebSocket();
   Future<void> refrestProducts() async {
     await friendBloc.getUser(widget.token);
   }

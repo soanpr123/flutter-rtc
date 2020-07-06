@@ -93,7 +93,8 @@ class _RenderVideoState extends State<RenderVideo> {
   _hangUp() {
     if (_signaling != null) {
       _signaling.bye();
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>HomeScreen(token: widget.token,idFome: widget.idFome,)));
+      _signaling.endCall();
+//      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>HomeScreen(token: widget.token,idFome: widget.idFome,)));
     }
   }
 
