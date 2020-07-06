@@ -42,7 +42,7 @@ dependencies:
   curved_navigation_bar: ^0.3.2
   flutter_webrtc: ^0.2.8
   connectivity: ^0.4.8+6
-  flutter_dotenv: ^2.1.0
+  rxdart: ^0.24.1
 
 dev_dependencies:
   flutter_test:
