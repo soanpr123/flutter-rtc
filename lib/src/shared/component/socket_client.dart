@@ -50,7 +50,7 @@ class SimpleWebSocket {
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-//      'path': '/socket-chat/',
+      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -110,7 +110,7 @@ class SimpleWebSocket {
 class JoinRoom {
   OnMessageCallback onMessage;
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 

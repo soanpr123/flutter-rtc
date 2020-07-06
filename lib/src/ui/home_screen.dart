@@ -9,31 +9,31 @@ import 'package:logindemo/src/shared/style/colors.dart';
 import 'package:logindemo/src/shared/widget/friend_item.dart';
 import 'package:logindemo/src/ui/calling_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   static const routername = "/home";
   final String token;
   final int idFome;
-  HomeScreen({this.token,this.idFome});
+  HomeScreen({this.token, this.idFome});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final friendBloc = FriendBloc();
-  final profileBloc=ProfileBloc();
-  String nameUser='';
-JoinRoom _joinRoom;
-  Future<void> refrestProducts()async {
-   await friendBloc.getUser(widget.token);
+  final profileBloc = ProfileBloc();
+  String nameUser = '';
+  JoinRoom _joinRoom;
+  Future<void> refrestProducts() async {
+    await friendBloc.getUser(widget.token);
   }
+
 //mới
   @override
   void initState() {
     super.initState();
     friendBloc.getUser(widget.token);
-    _joinRoom=JoinRoom();
- profileBloc.getInfor(widget.token, getData);
+    _joinRoom = JoinRoom();
+    profileBloc.getInfor(widget.token, getData);
     _joinRoom.invitCalls(invitCall);
   }
 
@@ -43,13 +43,14 @@ JoinRoom _joinRoom;
     friendBloc.dispose();
     profileBloc.dispose();
   }
-getData(data){
 
-Proffile  _profile=data;
-var decode = Uri.decodeFull(_profile.infoUser.displayName);
-print("data là pro : $decode");
-nameUser=decode;
-}
+  getData(data) {
+    Proffile _profile = data;
+    var decode = Uri.decodeFull(_profile.infoUser.displayName);
+    print("data là pro : $decode");
+    nameUser = decode;
+  }
+
   invitCall(data) {
     print("invitCall là: $data");
     if (null == data || data.toString().isEmpty) {
@@ -60,7 +61,13 @@ nameUser=decode;
     print("tên người gọi : $decode");
     print("ID người gọi : ${_invitcallClass.idFrom}");
     setState(() {
-     Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>CallingScreen(name: decode,idForm: _invitcallClass.idFrom,token: widget.token,idFome: widget.idFome,)));
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (BuildContext ctx) => CallingScreen(
+                name: decode,
+                idForm: _invitcallClass.idFrom,
+                token: widget.token,
+                idFome: widget.idFome,
+              )));
     });
   }
 
@@ -91,7 +98,7 @@ nameUser=decode;
               topRight: Radius.circular(30.0),
             ),
             child: RefreshIndicator(
-              onRefresh: ()=>refrestProducts(),
+              onRefresh: () => refrestProducts(),
               child: StreamBuilder<Object>(
                   stream: friendBloc.dataList,
                   builder: (context, snapshot) {

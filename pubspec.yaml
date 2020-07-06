@@ -63,6 +63,8 @@ flutter:
     - .env
     - assets/logos/facebook.jpg
     - assets/logos/google.jpg
+    - assets/images/uoi_logo.png
+    - assets/images/uoi_logo_login.png
 
 
   fonts:

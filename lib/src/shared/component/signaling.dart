@@ -31,7 +31,7 @@ typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
