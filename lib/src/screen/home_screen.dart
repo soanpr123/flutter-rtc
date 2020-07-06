@@ -6,8 +6,8 @@ import 'package:logindemo/src/provider/user_provider.dart';
 
 import 'package:logindemo/src/widgets/friend_item.dart';
 import 'package:logindemo/src/widgets/render_video.dart';
-import 'package:provider/provider.dart';
 import 'package:getflutter/getflutter.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routername = "/home";
