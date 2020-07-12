@@ -4,13 +4,13 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:logindemo/src/bloc/login_bloc.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
-import 'package:logindemo/src/shared/component/toast.dart';
-import 'package:logindemo/src/shared/style/colors.dart';
-import 'package:logindemo/src/ui/home_screen.dart';
-
+import 'package:rtc_uoi/src/bloc/login_bloc.dart';
+import 'package:rtc_uoi/src/model/loginMD.dart';
+import 'package:rtc_uoi/src/shared/component/connfig.dart';
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
+import 'package:rtc_uoi/src/shared/component/toast.dart';
+import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/ui/home_screen.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -116,8 +116,8 @@ class _AuthCardState extends State<AuthCard> {
                         token: data['webToken'],
                         idFome: data['id'],
                       )));
-//              _simpleWebSocket.connect(
-//                  Config.REACT_APP_URL_SOCKETIO, data['webToken']);
+              _simpleWebSocket.connect(
+                  Config.REACT_APP_URL_SOCKETIO, data['webToken']);
             } else {
               ToastShare().getToast("Password is error");
             }
@@ -150,7 +150,7 @@ class _AuthCardState extends State<AuthCard> {
   @override
   void initState() {
     super.initState();
-//    _simpleWebSocket = SimpleWebSocket();
+    _simpleWebSocket = SimpleWebSocket();
     _emailController.addListener(() {
       loginBloc.emailSink.add(_emailController.text);
     });

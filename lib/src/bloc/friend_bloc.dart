@@ -1,6 +1,5 @@
-
-import 'package:logindemo/src/model/friendMd.dart';
-import 'package:logindemo/src/service/friend_service.dart';
+import 'package:rtc_uoi/src/model/friendMd.dart';
+import 'package:rtc_uoi/src/service/friend_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FriendBloc {

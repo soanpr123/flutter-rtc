@@ -1,5 +1,5 @@
-import 'package:logindemo/src/model/user_profile_MD.dart';
-import 'package:logindemo/src/service/profile_service.dart';
+import 'package:rtc_uoi/src/model/user_profile_MD.dart';
+import 'package:rtc_uoi/src/service/profile_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ProfileBloc {

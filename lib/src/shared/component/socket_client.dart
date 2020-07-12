@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
+import 'package:rtc_uoi/src/shared/component/connfig.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 import 'package:logging/logging.dart';
 
@@ -10,7 +10,6 @@ const CLIENT_ID_EVENT = 'client-id-event';
 const OFFER_EVENT = 'offer';
 const ANSWER_EVENT = 'answer';
 const READY_EVENT = 'ready';
-const END_EVENT = 'endCall';
 const ICE_CANDIDATE_EVENT = 'candidate';
 typedef void OnMessageCallback(String tag,dynamic msg);
 typedef void OnCloseCallback(int code, String reason);
@@ -51,7 +50,7 @@ class SimpleWebSocket {
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-//      'path': '/socket-chat/',
+      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -89,9 +88,6 @@ class SimpleWebSocket {
       onMessage( CLIENT_ID_EVENT,data);
     });
 
-    socket.on(ICE_CANDIDATE_EVENT, (data) {
-      print("Candicate là : $data");
-    });
 
     socket.on('event', (data) => print("received " + data));
     socket.on('disconnect', (_) => print('disconnect'));
@@ -111,7 +107,7 @@ class SimpleWebSocket {
 class JoinRoom {
   OnMessageCallback onMessage;
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 
@@ -175,17 +171,17 @@ class JoinRoom {
       onMessage(READY_EVENT,data);
     });
   }
-
+  candidateEvent(){
+    _socket.on('candidate', (data){
+      onMessage(ICE_CANDIDATE_EVENT,data);
+    });
+  }
   Join(int idFrom, String token, String name) {
     _socket.emit('ready',
         {'idTo': idFrom, 'token': token, 'display_name': name});
 
   }
-encall(){
-    _socket.on('endCall', (data){
-      onMessage(END_EVENT,data);
-    });
-}
+
   send(event, data) {
     if (_socket != null) {
       _socket.emit(event, data);

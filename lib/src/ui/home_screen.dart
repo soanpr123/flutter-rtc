@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:logindemo/src/bloc/friend_bloc.dart';
-import 'package:logindemo/src/bloc/profile_bloc.dart';
-import 'package:logindemo/src/model/friendMd.dart';
-import 'package:logindemo/src/model/invitcall.dart';
-import 'package:logindemo/src/model/user_profile_MD.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
-import 'package:logindemo/src/shared/style/colors.dart';
-import 'package:logindemo/src/shared/widget/friend_item.dart';
-import 'package:logindemo/src/ui/calling_screen.dart';
+import 'package:rtc_uoi/src/bloc/friend_bloc.dart';
+import 'package:rtc_uoi/src/bloc/profile_bloc.dart';
+import 'package:rtc_uoi/src/model/friendMd.dart';
+import 'package:rtc_uoi/src/model/invitcall.dart';
+import 'package:rtc_uoi/src/model/user_profile_MD.dart';
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
+import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/shared/widget/friend_item.dart';
+import 'package:rtc_uoi/src/ui/calling_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routername = "/home";
   final String token;
   final int idFome;
-
   HomeScreen({this.token, this.idFome});
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -25,22 +23,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final profileBloc = ProfileBloc();
   String nameUser = '';
   JoinRoom _joinRoom;
-  SimpleWebSocket _simpleWebSocket = SimpleWebSocket();
   Future<void> refrestProducts() async {
     await friendBloc.getUser(widget.token);
   }
 
-//mới
   @override
   void initState() {
     super.initState();
     friendBloc.getUser(widget.token);
-        _simpleWebSocket.connect(
-        Config.REACT_APP_URL_SOCKETIO, widget.token);
     _joinRoom = JoinRoom();
     profileBloc.getInfor(widget.token, getData);
     _joinRoom.invitCalls(invitCall);
-
   }
 
   @override

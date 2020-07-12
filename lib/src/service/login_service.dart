@@ -1,8 +1,6 @@
-
-
-import 'package:logindemo/src/model/loginMD.dart';
-import 'package:logindemo/src/shared/base/base_service.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
+import 'package:rtc_uoi/src/model/loginMD.dart';
+import 'package:rtc_uoi/src/shared/base/base_service.dart';
+import 'package:rtc_uoi/src/shared/component/connfig.dart';
 
 class AuthenSerice {
   Login(

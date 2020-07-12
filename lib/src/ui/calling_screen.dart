@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
-import 'package:logindemo/src/shared/style/colors.dart';
-import 'package:logindemo/src/ui/render_video.dart';
-
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
+import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/ui/login_screen.dart';
+import 'package:rtc_uoi/src/ui/render_video.dart';
 
 class CallingScreen extends StatefulWidget {
 final int idFome;
@@ -96,6 +96,6 @@ JoinRoom _joinRoom=JoinRoom();
 
   void _join() {
     _joinRoom.Join(widget.idForm, widget.token, widget.name);
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idFome)));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idFome,null,null)));
   }
 }

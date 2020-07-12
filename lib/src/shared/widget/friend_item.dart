@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
-import 'package:logindemo/src/ui/chat_screen.dart';
-
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
+import 'package:rtc_uoi/src/ui/chat_screen.dart';
 //import 'package:logindemo/src/screen/chat_screen.dart';
 
 enum StatusEnum { OFFLINE, ONLINE }

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/rtc_video_view.dart';
 import 'package:intl/intl.dart';
-import 'package:logindemo/src/model/message_model.dart';
-import 'package:logindemo/src/model/response_message_model.dart';
-import 'package:logindemo/src/shared/component/signaling.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
-import 'package:logindemo/src/shared/style/colors.dart';
-
+import 'package:rtc_uoi/src/model/message_model.dart';
+import 'package:rtc_uoi/src/model/response_message_model.dart';
+import 'package:rtc_uoi/src/shared/component/signaling.dart';
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
+import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/ui/render_video.dart';
 
 class ChatScreen extends StatefulWidget {
   static const routerName = '/Chat-screen';
@@ -33,10 +33,6 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
-  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-  bool _inCalling = false;
-  Signaling _signaling;
   _buildMessage(Message message, bool isMe) {
     var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
     String formatdate = DateFormat('yyyy/MM/dd, kk:mm').format(date);
@@ -145,8 +141,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatListScrollToBottom();
     _joinRoom = JoinRoom();
 //    _joinRoom.invitCalls(invitCall);
-    initRenderers();
-    _connect(widget.token);
     _chatMessages = List();
     _chatLVController = ScrollController(initialScrollOffset: 0.0);
     _chatTfController = TextEditingController();
@@ -165,74 +159,6 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   } //↓↓↓↓↓↓↓------get message in response------↓↓↓↓↓↓//
 
-  initRenderers() async {
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-  }
-
-  @override
-  void deactivate() {
-    super.deactivate();
-    if (_signaling != null) _signaling.close();
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
-  }
-
-  void _connect(String token) async {
-    if (_signaling == null) {
-      _signaling = Signaling(token)..connect();
-      _signaling.onStateChange = (SignalingState state) {
-        switch (state) {
-          case SignalingState.CallStateNew:
-            this.setState(() {
-              _inCalling = true;
-            });
-            break;
-          case SignalingState.CallStateBye:
-            this.setState(() {
-              _localRenderer.srcObject = null;
-              _remoteRenderer.srcObject = null;
-              _inCalling = false;
-            });
-            break;
-          case SignalingState.CallStateInvite:
-          case SignalingState.CallStateConnected:
-          case SignalingState.CallStateRinging:
-          case SignalingState.ConnectionClosed:
-          case SignalingState.ConnectionError:
-          case SignalingState.ConnectionOpen:
-            break;
-        }
-      };
-      _signaling.onLocalStream = ((stream) {
-        _localRenderer.srcObject = stream;
-      });
-
-      _signaling.onAddRemoteStream = ((stream) {
-        _remoteRenderer.srcObject = stream;
-      });
-
-      _signaling.onRemoveRemoteStream = ((stream) {
-        _remoteRenderer.srcObject = null;
-      });
-    }
-  }
-  _invitePeer(context, peerId, use_screen) async {
-    if (_signaling != null) {
-      _signaling.invite(peerId, 'video', use_screen,widget.displayName);
-    }
-  }
-  _hangUp() {
-    if (_signaling != null) {
-      _signaling.bye();
-    }
-  }
-
-  _switchCamera() {
-    _signaling.switchCamera();
-  }
-
-  _muteMic() {}
   onChatMessageReceived(data) {
     print('onChatMessageReceived $data');
     if (null == data || data.toString().isEmpty) {
@@ -331,7 +257,7 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 30.0,
             color: Colors.white,
             onPressed: () {
-              _invitePeer(context, widget.peerId, false);
+Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idForme,widget.peerId,widget.displayName)));
             },
           ),
           IconButton(
@@ -342,60 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _inCalling
-          ? SizedBox(
-          width: 200.0,
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FloatingActionButton(
-                  child: const Icon(Icons.switch_camera),
-                  onPressed: _switchCamera,
-                ),
-                FloatingActionButton(
-                  onPressed: _hangUp,
-                  tooltip: 'Hangup',
-                  child: Icon(Icons.call_end),
-                  backgroundColor: Colors.pink,
-                ),
-                FloatingActionButton(
-                  child: const Icon(Icons.mic_off),
-                  onPressed: _muteMic,
-                )
-              ]))
-          : null,
-      body: _inCalling
-          ? OrientationBuilder(builder: (context, orientation) {
-        return new Container(
-          child: new Stack(children: <Widget>[
-            new Positioned(
-                left: 0.0,
-                right: 0.0,
-                top: 0.0,
-                bottom: 0.0,
-                child: new Container(
-                  margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: new RTCVideoView(_remoteRenderer),
-                  decoration: new BoxDecoration(color: Colors.black54),
-                )),
-            new Positioned(
-              left: 20.0,
-              top: 20.0,
-              child: new Container(
-                width: orientation == Orientation.portrait ? 90.0 : 120.0,
-                height:
-                orientation == Orientation.portrait ? 120.0 : 90.0,
-                child: new RTCVideoView(_localRenderer),
-                decoration: new BoxDecoration(color: Colors.white),
-              ),
-            ),
-          ]),
-        );
-      })
-          : GestureDetector(
+      body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
           children: <Widget>[

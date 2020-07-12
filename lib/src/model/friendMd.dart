@@ -11,21 +11,22 @@ String friendMdToJson(FriendMd data) => json.encode(data.toJson());
 class FriendMd {
   FriendMd({
     this.message,
+
     this.status,
   });
 
   String message;
-  List<dynamic> data;
+
   List<StatusElement> status;
 
   factory FriendMd.fromJson(Map<String, dynamic> json) => FriendMd(
     message: json["message"],
+
     status: List<StatusElement>.from(json["status"].map((x) => StatusElement.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "message": message,
-    "data": List<dynamic>.from(data.map((x) => x)),
     "status": List<dynamic>.from(status.map((x) => x.toJson())),
   };
 }

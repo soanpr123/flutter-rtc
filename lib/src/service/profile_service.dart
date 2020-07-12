@@ -1,8 +1,6 @@
-
-
-import 'package:logindemo/src/model/user_profile_MD.dart';
-import 'package:logindemo/src/shared/base/base_service.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
+import 'package:rtc_uoi/src/model/user_profile_MD.dart';
+import 'package:rtc_uoi/src/shared/base/base_service.dart';
+import 'package:rtc_uoi/src/shared/component/connfig.dart';
 
 class UserProfileService {
   getInforUser(

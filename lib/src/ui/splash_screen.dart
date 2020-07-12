@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:logindemo/src/shared/style/colors.dart';
-import 'package:logindemo/src/ui/login_screen.dart';
-
+import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/ui/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

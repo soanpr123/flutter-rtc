@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_webrtc/webrtc.dart';
-import 'package:logindemo/src/shared/component/connfig.dart';
-import 'package:logindemo/src/shared/component/socket_client.dart';
 
+import 'package:rtc_uoi/src/shared/component/connfig.dart';
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:socket_io_common_client/socket_io_client.dart' as IO;
 
 enum SignalingState {
@@ -30,7 +30,7 @@ typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
@@ -101,7 +101,7 @@ class Signaling {
     if (peerConnection != null) {
       peerConnection.close();
     }
-    if (_socket != null) _socket.close();
+//    if (_socket != null) _socket.close();
   }
 
   void switchCamera() {
@@ -109,17 +109,35 @@ class Signaling {
       _localStream.getVideoTracks()[0].switchCamera();
     }
   }
+  void muteMic(bool mute) {
+    if (_localStream != null) {
+      _localStream.getAudioTracks()[0].enabled=mute;
+    }
+  }
+  void endCall() {
+    _socket.emit('endCall', {'idTo': 580, 'token': token});
+  }
 
-  void invite(int peer_id, String media, use_screen, String name) {
+  void invite(int peer_id, String media, use_screen,String name) {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
-    _socket.on('ready', (data) {
+    _socket.on('ready', (data){
       _createPeerConnection(false).then((pc) {
-        peerConnection = pc;
-        _createOffer(data['idFrom'], pc, 'video', token, name);
-      });
+            peerConnection = pc;
+            pc.onIceCandidate = (candidate) {
+              _socket.emit('candidate', {
+                'type': 'candidate',
+                'label': candidate.sdpMlineIndex,
+                'id': candidate.sdpMid,
+                'candidate': candidate.candidate,
+                'idTo': 580,
+                'token': token
+              });
+            };
+            _createOffer(data['idFrom'], pc, 'video', token,name);
+          });
     });
   }
 
@@ -166,10 +184,6 @@ class Signaling {
     return stream;
   }
 
-  void endCall() {
-    _socket.emit('endCall', {'idTo': 127, 'token': token});
-  }
-
   _createPeerConnection(user_screen) async {
     _localStream = await createStream(user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
@@ -211,6 +225,16 @@ class Signaling {
           }
           var pc = await _createPeerConnection(false);
           peerConnection = pc;
+          pc.onIceCandidate = (candidate) {
+            _socket.emit('candidate', {
+              'type': 'candidate',
+              'label': candidate.sdpMlineIndex,
+              'id': candidate.sdpMid,
+              'candidate': candidate.candidate,
+              'idTo': 580,
+              'token': token
+            });
+          };
           await pc.setRemoteDescription(new RTCSessionDescription(
               data['sdp']['sdp'], data['sdp']['type']));
           await _createAnswer(id, pc, media, token);
@@ -234,9 +258,21 @@ class Signaling {
           }
         }
         break;
-      case END_EVENT:
+      case ICE_CANDIDATE_EVENT:
         {
-          print("end là : $data");
+            print("là candicate: ${  data['label']}");
+            if (data != null) {
+              var pc = peerConnection;
+              RTCIceCandidate candidate =  new RTCIceCandidate(
+                  data['candidate'],
+                  "",
+                  data['label']);
+              if (pc != null) {
+                await pc.addCandidate(candidate);
+              } else {
+                _remoteCandidates.add(candidate);
+              }
+            }
         }
         break;
     }
@@ -247,7 +283,7 @@ class Signaling {
     _joinRoom.offerEvent();
     _joinRoom.answerEvent();
     _joinRoom.readyrEvent();
-    _joinRoom.encall();
+    _joinRoom.candidateEvent();
     _joinRoom.onMessage = (tag, message) {
       print('Received data: $tag - $message');
       this.onMessage(tag, message);
@@ -270,8 +306,7 @@ class Signaling {
     }
   }
 
-  _createOffer(int id, RTCPeerConnection pc, String media, String token,
-      String name) async {
+  _createOffer(int id, RTCPeerConnection pc, String media, String token,String name) async {
     try {
       RTCSessionDescription s = await pc
           .createOffer(media == 'data' ? _dc_constraints : _constraints);
