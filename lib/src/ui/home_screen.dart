@@ -35,9 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     friendBloc.getUser(widget.token);
+        _simpleWebSocket.connect(
+        Config.REACT_APP_URL_SOCKETIO, widget.token);
     _joinRoom = JoinRoom();
     profileBloc.getInfor(widget.token, getData);
     _joinRoom.invitCalls(invitCall);
+
   }
 
   @override

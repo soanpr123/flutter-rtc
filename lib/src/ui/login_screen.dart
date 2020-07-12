@@ -116,8 +116,8 @@ class _AuthCardState extends State<AuthCard> {
                         token: data['webToken'],
                         idFome: data['id'],
                       )));
-              _simpleWebSocket.connect(
-                  Config.REACT_APP_URL_SOCKETIO, data['webToken']);
+//              _simpleWebSocket.connect(
+//                  Config.REACT_APP_URL_SOCKETIO, data['webToken']);
             } else {
               ToastShare().getToast("Password is error");
             }
@@ -150,7 +150,7 @@ class _AuthCardState extends State<AuthCard> {
   @override
   void initState() {
     super.initState();
-    _simpleWebSocket = SimpleWebSocket();
+//    _simpleWebSocket = SimpleWebSocket();
     _emailController.addListener(() {
       loginBloc.emailSink.add(_emailController.text);
     });
