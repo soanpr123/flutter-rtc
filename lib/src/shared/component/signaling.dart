@@ -30,7 +30,7 @@ typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-    'path': '/socket-chat/',
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
@@ -140,6 +140,24 @@ class Signaling {
           });
     });
   }
+void endCalls(Function endCall){
+  _socket.on('endCall', (data){
+    print('Data end là:$data');
+    endCall(data);
+    if (_localStream != null) {
+      _localStream.dispose();
+      _localStream = null;
+    }
+
+    if (dataChannel != null) {
+      dataChannel.close();
+    }
+    if (peerConnection != null) {
+      peerConnection.close();
+    }
+    _remoteCandidates.clear();
+  });
+}
 
   void bye() {
     if (_localStream != null) {
@@ -284,6 +302,7 @@ class Signaling {
     _joinRoom.answerEvent();
     _joinRoom.readyrEvent();
     _joinRoom.candidateEvent();
+    _joinRoom.endCall();
     _joinRoom.onMessage = (tag, message) {
       print('Received data: $tag - $message');
       this.onMessage(tag, message);

@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 const CLIENT_ID_EVENT = 'client-id-event';
 const OFFER_EVENT = 'offer';
 const ANSWER_EVENT = 'answer';
+const END_EVENT = 'endCall';
 const READY_EVENT = 'ready';
 const ICE_CANDIDATE_EVENT = 'candidate';
 typedef void OnMessageCallback(String tag,dynamic msg);
@@ -50,7 +51,7 @@ class SimpleWebSocket {
     stdout.writeln('Type something');
     List<String> cookie = null;
     socket = IO.io(url, {
-      'path': '/socket-chat/',
+//      'path': '/socket-chat/',
 //    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
@@ -107,7 +108,7 @@ class SimpleWebSocket {
 class JoinRoom {
   OnMessageCallback onMessage;
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-    'path': '/socket-chat/',
+//    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 
@@ -129,7 +130,10 @@ class JoinRoom {
     });
   }
 
-  ready() {}
+  endCall() {
+
+
+  }
 
   setOnListener(Function onListener) {
     _socket.on("notify_msg", (data) {

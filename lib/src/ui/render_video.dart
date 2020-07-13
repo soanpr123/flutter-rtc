@@ -27,6 +27,7 @@ class _RenderVideoState extends State<RenderVideo> {
     super.initState();
     _joinRoom = JoinRoom();
     _connect();
+    _signaling.endCalls(endCalls);
     initRenderers();
     if (widget.peerID == null && widget.dissplayName == null) {
       _connect();
@@ -60,12 +61,20 @@ class _RenderVideoState extends State<RenderVideo> {
             });
             break;
           case SignalingState.CallStateBye:
-            this.setState(() {
-              _localRenderer.srcObject = null;
-              _remoteRenderer.srcObject = null;
-              _inCalling = false;
-              Wakelock.disable();
-            });
+            if(mounted){
+              this.setState(() {
+                _localRenderer.srcObject = null;
+                _remoteRenderer.srcObject = null;
+                _inCalling = false;
+                Wakelock.disable();
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (BuildContext ctx) => HomeScreen(
+                      token: widget.token,
+                      idFome: widget.idFome,
+                    )));
+              });
+            }
+
             break;
           case SignalingState.CallStateInvite:
           case SignalingState.CallStateConnected:
@@ -184,5 +193,11 @@ class _RenderVideoState extends State<RenderVideo> {
             ]),
       ),
     );
+  }
+
+  endCalls(data) {
+    if(data!=null){
+      _signaling.bye();
+    }
   }
 }
