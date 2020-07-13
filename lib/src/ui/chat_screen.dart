@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Divider(
                   color: Colors.black,
                 ),
-                Text(formatdate,style: TextStyle(color: Colors.white70,fontWeight: FontWeight.bold))
+                Text("- Ended at: $formatdate",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold))
               ],
             ),
           )
@@ -117,7 +117,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ],
     );
   }
-
   _buildMessageComposer(String token, String name, int id) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0),
