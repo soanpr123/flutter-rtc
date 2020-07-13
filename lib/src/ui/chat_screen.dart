@@ -22,7 +22,6 @@ class ChatScreen extends StatefulWidget {
     @required this.idForme,
     @required this.peerId,
     @required this.displayName,
-
   });
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -33,57 +32,82 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _chatMessages;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
-  _buildMessage(Message message, bool isMe) {
+  _buildMessage(Message message, bool isMe, bool callvideo) {
     var date = new DateTime.fromMicrosecondsSinceEpoch(message.time * 1000);
     String formatdate = DateFormat('yyyy/MM/dd, kk:mm').format(date);
-    final Container msg = Container(
-      margin: isMe
-          ? EdgeInsets.only(
-        top: 8.0,
-        bottom: 8.0,
-        left: 80.0,
-      )
-          : EdgeInsets.only(
-        top: 8.0,
-        bottom: 8.0,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
-      width: MediaQuery.of(context).size.width * 0.75,
-      decoration: BoxDecoration(
-        color: isMe ? Colors.blue : Colors.black54,
-        borderRadius: isMe
-            ? BorderRadius.only(
-          topLeft: Radius.circular(15.0),
-          bottomLeft: Radius.circular(15.0),
-        )
-            : BorderRadius.only(
-          topRight: Radius.circular(15.0),
-          bottomRight: Radius.circular(15.0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            message.message,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.w600,
+    final Container msg = callvideo
+        ? Container(
+            width: 200,
+            height: 60,
+            margin: EdgeInsets.only(left: 100.0, top: 8.0, bottom: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(15.0),
+                bottomRight: Radius.circular(15.0),
+                bottomLeft: Radius.circular(15.0),
+                topLeft: Radius.circular(15.0),
+              ),
             ),
-          ),
-          SizedBox(height: 8.0),
-          Text(
-            formatdate,
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 10.0,
-              fontWeight: FontWeight.w600,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Center(child: Text(message.displayName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)),
+                Divider(
+                  color: Colors.black,
+                ),
+                Text(formatdate,style: TextStyle(color: Colors.white70,fontWeight: FontWeight.bold))
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          )
+        : Container(
+            margin: isMe
+                ? EdgeInsets.only(
+                    top: 10.0,
+                    bottom: 8.0,
+                    left: 80.0,
+                  )
+                : EdgeInsets.only(
+                    top: 8.0,
+                    bottom: 8.0,
+                  ),
+            padding: EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
+            width: MediaQuery.of(context).size.width * 0.75,
+            decoration: BoxDecoration(
+              color: isMe ? Colors.blue : Colors.black54,
+              borderRadius: isMe
+                  ? BorderRadius.only(
+                      topLeft: Radius.circular(15.0),
+                      bottomLeft: Radius.circular(15.0),
+                    )
+                  : BorderRadius.only(
+                      topRight: Radius.circular(15.0),
+                      bottomRight: Radius.circular(15.0),
+                    ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  message.message,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8.0),
+                Text(
+                  formatdate,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          );
     if (isMe) {
       return msg;
     }
@@ -109,13 +133,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Expanded(
             child: TextField(
-              style: TextStyle(color:  Colors.white),
+              style: TextStyle(color: Colors.white),
               textCapitalization: TextCapitalization.sentences,
               onChanged: (value) {},
               decoration: InputDecoration.collapsed(
-                hintText: 'Send a message...',
-                hintStyle: TextStyle(color:  Colors.white)
-              ),
+                  hintText: 'Send a message...',
+                  hintStyle: TextStyle(color: Colors.white)),
               controller: _chatTfController,
             ),
           ),
@@ -184,9 +207,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 //↓↓↓↓↓↓------add Message to UI----↓↓↓↓↓↓↓//
   _addMessage(
-      id,
-      List<Message> chatMessageModel,
-      ) async {
+    id,
+    List<Message> chatMessageModel,
+  ) async {
     setState(() {
       _chatMessages = chatMessageModel;
     });
@@ -213,7 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
     ResponseMessageModelClass messageMD =
-    ResponseMessageModelClass.fromJson(data);
+        ResponseMessageModelClass.fromJson(data);
     List<Message> loaderMassage = [];
     if (this.mounted) {
       setState(() {
@@ -239,7 +262,6 @@ class _ChatScreenState extends State<ChatScreen> {
   //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓-Build Ui chat-↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓//
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
@@ -257,7 +279,9 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 30.0,
             color: Colors.white,
             onPressed: () {
-Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idForme,widget.peerId,widget.displayName)));
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext ctx) => RenderVideo(widget.token,
+                      widget.idForme, widget.peerId, widget.displayName)));
             },
           ),
           IconButton(
@@ -292,19 +316,19 @@ Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>Render
                       reverse: false,
                       shrinkWrap: true,
                       padding: EdgeInsets.only(top: 15.0),
-                      itemCount: _chatMessages == null
-                          ? 0
-                          : _chatMessages.length,
+                      itemCount:
+                          _chatMessages == null ? 0 : _chatMessages.length,
                       itemBuilder: (BuildContext context, int index) {
                         final Message message = _chatMessages[index];
                         final bool isMe = message.id == widget.idForme;
-                        return _buildMessage(message, isMe);
+                        final bool callvideo =
+                            message.displayName == "VIDEO_CHAT_ENDED";
+                        return _buildMessage(message, isMe, callvideo);
                       },
                     )),
               ),
             ),
-            _buildMessageComposer(
-                widget.token, widget.name, widget.idForme),
+            _buildMessageComposer(widget.token, widget.name, widget.idForme),
           ],
         ),
       ),

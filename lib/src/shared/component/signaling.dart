@@ -112,10 +112,11 @@ class Signaling {
   void muteMic(bool mute) {
     if (_localStream != null) {
       _localStream.getAudioTracks()[0].enabled=mute;
+
     }
   }
-  void endCall() {
-    _socket.emit('endCall', {'idTo': 580, 'token': token});
+  void endCall(int id) {
+    _socket.emit('endCall', {'idTo': id, 'token': token});
   }
 
   void invite(int peer_id, String media, use_screen,String name) {
@@ -124,7 +125,7 @@ class Signaling {
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
     _socket.on('ready', (data){
-      _createPeerConnection(false).then((pc) {
+      _createPeerConnection(false,peer_id).then((pc) {
             peerConnection = pc;
             pc.onIceCandidate = (candidate) {
               _socket.emit('candidate', {
@@ -132,7 +133,7 @@ class Signaling {
                 'label': candidate.sdpMlineIndex,
                 'id': candidate.sdpMid,
                 'candidate': candidate.candidate,
-                'idTo': 580,
+                'idTo': peer_id,
                 'token': token
               });
             };
@@ -202,7 +203,7 @@ void endCalls(Function endCall){
     return stream;
   }
 
-  _createPeerConnection(user_screen) async {
+  _createPeerConnection(user_screen,int id) async {
     _localStream = await createStream(user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     pc.addStream(_localStream);
@@ -212,7 +213,7 @@ void endCalls(Function endCall){
         'label': candidate.sdpMlineIndex,
         'id': candidate.sdpMid,
         'candidate': candidate.candidate,
-        'idTo': 580,
+        'idTo': id,
         'token': token
       });
     };
@@ -241,7 +242,7 @@ void endCalls(Function endCall){
           if (this.onStateChange != null) {
             this.onStateChange(SignalingState.CallStateNew);
           }
-          var pc = await _createPeerConnection(false);
+          var pc = await _createPeerConnection(false,id);
           peerConnection = pc;
           pc.onIceCandidate = (candidate) {
             _socket.emit('candidate', {
@@ -249,7 +250,7 @@ void endCalls(Function endCall){
               'label': candidate.sdpMlineIndex,
               'id': candidate.sdpMid,
               'candidate': candidate.candidate,
-              'idTo': 580,
+              'idTo': id,
               'token': token
             });
           };

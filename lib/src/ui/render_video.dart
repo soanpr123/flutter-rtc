@@ -33,6 +33,7 @@ class _RenderVideoState extends State<RenderVideo> {
       _connect();
     } else if (widget.peerID != null && widget.dissplayName != null) {
       _invitePeer(widget.peerID, false);
+      print("id perr : ${widget.peerID}");
       _connect();
     }
   }
@@ -67,11 +68,7 @@ class _RenderVideoState extends State<RenderVideo> {
                 _remoteRenderer.srcObject = null;
                 _inCalling = false;
                 Wakelock.disable();
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (BuildContext ctx) => HomeScreen(
-                      token: widget.token,
-                      idFome: widget.idFome,
-                    )));
+                Navigator.of(context).pop();
               });
             }
 
@@ -85,12 +82,6 @@ class _RenderVideoState extends State<RenderVideo> {
             break;
         }
       };
-      _signaling.onPeersUpdate = ((event) {
-        this.setState(() {
-//          _selfId = event['self'];
-//          _peers = event['peers'];
-        });
-      });
       _signaling.onLocalStream = ((stream) {
         _localRenderer.srcObject = stream;
       });
@@ -114,12 +105,7 @@ class _RenderVideoState extends State<RenderVideo> {
   _hangUp() {
     if (_signaling != null) {
       _signaling.bye();
-      _signaling.endCall();
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (BuildContext ctx) => HomeScreen(
-                token: widget.token,
-                idFome: widget.idFome,
-              )));
+      _signaling.endCall(widget.peerID);
     }
   }
 
