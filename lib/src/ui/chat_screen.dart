@@ -162,7 +162,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _joinRoom.setOnListener(onListerner);
     _chatListScrollToBottom();
     _joinRoom = JoinRoom();
-//    _joinRoom.invitCalls(invitCall);
     _chatMessages = List();
     _chatLVController = ScrollController(initialScrollOffset: 0.0);
     _chatTfController = TextEditingController();

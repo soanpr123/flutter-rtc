@@ -96,6 +96,6 @@ JoinRoom _joinRoom=JoinRoom();
 
   void _join() {
     _joinRoom.Join(widget.idForm, widget.token, widget.name);
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idFome,null,null)));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>RenderVideo(widget.token,widget.idFome,widget.idForm,null)));
   }
 }

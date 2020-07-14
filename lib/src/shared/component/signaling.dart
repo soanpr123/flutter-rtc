@@ -145,18 +145,6 @@ void endCalls(Function endCall){
   _socket.on('endCall', (data){
     print('Data end là:$data');
     endCall(data);
-    if (_localStream != null) {
-      _localStream.dispose();
-      _localStream = null;
-    }
-
-    if (dataChannel != null) {
-      dataChannel.close();
-    }
-    if (peerConnection != null) {
-      peerConnection.close();
-    }
-    _remoteCandidates.clear();
   });
 }
 

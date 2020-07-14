@@ -29,7 +29,7 @@ class _RenderVideoState extends State<RenderVideo> {
     _connect();
     _signaling.endCalls(endCalls);
     initRenderers();
-    if (widget.peerID == null && widget.dissplayName == null) {
+    if (widget.peerID != null && widget.dissplayName == null) {
       _connect();
     } else if (widget.peerID != null && widget.dissplayName != null) {
       _invitePeer(widget.peerID, false);
@@ -62,7 +62,6 @@ class _RenderVideoState extends State<RenderVideo> {
             });
             break;
           case SignalingState.CallStateBye:
-            if(mounted){
               this.setState(() {
                 _localRenderer.srcObject = null;
                 _remoteRenderer.srcObject = null;
@@ -70,8 +69,6 @@ class _RenderVideoState extends State<RenderVideo> {
                 Wakelock.disable();
                 Navigator.of(context).pop();
               });
-            }
-
             break;
           case SignalingState.CallStateInvite:
           case SignalingState.CallStateConnected:
