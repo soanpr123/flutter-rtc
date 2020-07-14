@@ -30,7 +30,7 @@ typedef void DataChannelCallback(RTCDataChannel dc);
 
 class Signaling {
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
   RTCPeerConnection peerConnection;
@@ -127,16 +127,6 @@ class Signaling {
     _socket.on('ready', (data){
       _createPeerConnection(false,peer_id).then((pc) {
             peerConnection = pc;
-            pc.onIceCandidate = (candidate) {
-              _socket.emit('candidate', {
-                'type': 'candidate',
-                'label': candidate.sdpMlineIndex,
-                'id': candidate.sdpMid,
-                'candidate': candidate.candidate,
-                'idTo': peer_id,
-                'token': token
-              });
-            };
             _createOffer(data['idFrom'], pc, 'video', token,name);
           });
     });
@@ -152,15 +142,11 @@ void endCalls(Function endCall){
     if (_localStream != null) {
       _localStream.dispose();
       _localStream = null;
-    }
 
-    if (dataChannel != null) {
-      dataChannel.close();
     }
     if (peerConnection != null) {
       peerConnection.close();
     }
-
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateBye);
     }
@@ -291,7 +277,6 @@ void endCalls(Function endCall){
     _joinRoom.answerEvent();
     _joinRoom.readyrEvent();
     _joinRoom.candidateEvent();
-    _joinRoom.endCall();
     _joinRoom.onMessage = (tag, message) {
       print('Received data: $tag - $message');
       this.onMessage(tag, message);
