@@ -8,8 +8,8 @@ import 'package:wakelock/wakelock.dart';
 class RenderVideo extends StatefulWidget {
   final String token;
   final int idFome;
-  final int peerID;
-  final String dissplayName;
+   int peerID;
+   String dissplayName;
   RenderVideo(this.token, this.idFome, this.peerID, this.dissplayName);
   @override
   _RenderVideoState createState() => _RenderVideoState();
@@ -29,12 +29,9 @@ class _RenderVideoState extends State<RenderVideo> {
     _connect();
     _signaling.endCalls(endCalls);
     initRenderers();
-    if (widget.peerID != null && widget.dissplayName == null) {
-      _connect();
-    } else if (widget.peerID != null && widget.dissplayName != null) {
+    if (widget.peerID != null && widget.dissplayName != null) {
       _invitePeer(widget.peerID, false);
       print("id perr : ${widget.peerID}");
-      _connect();
     }
   }
 
@@ -62,13 +59,15 @@ class _RenderVideoState extends State<RenderVideo> {
             });
             break;
           case SignalingState.CallStateBye:
+            if(mounted){
               this.setState(() {
                 _localRenderer.srcObject = null;
                 _remoteRenderer.srcObject = null;
-                _inCalling = false;
                 Wakelock.disable();
                 Navigator.of(context).pop();
               });
+            }
+
             break;
           case SignalingState.CallStateInvite:
           case SignalingState.CallStateConnected:
@@ -103,6 +102,9 @@ class _RenderVideoState extends State<RenderVideo> {
     if (_signaling != null) {
       _signaling.bye();
       _signaling.endCall(widget.peerID);
+      _signaling.onRemoveRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = null;
+      });
     }
   }
 

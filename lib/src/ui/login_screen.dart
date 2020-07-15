@@ -36,10 +36,9 @@ class AuthScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Flexible(
-
                     child: Image(
-                        width: 300,
-                        height: 300,
+                        width: 316,
+                        height: 200,
                         image: AssetImage('assets/images/uoi_logo.png')),
                   ),
                   Flexible(

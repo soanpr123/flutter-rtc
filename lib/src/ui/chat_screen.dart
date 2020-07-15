@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/rtc_video_view.dart';
 import 'package:intl/intl.dart';
@@ -39,7 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ? Container(
             width: 200,
             height: 60,
-            margin: EdgeInsets.only(left: 100.0, top: 8.0, bottom: 8.0),
+            margin: EdgeInsets.only( top: 8.0, bottom: 8.0),
             decoration: BoxDecoration(
               color: Colors.blue,
               borderRadius: BorderRadius.only(
@@ -110,6 +111,15 @@ class _ChatScreenState extends State<ChatScreen> {
           );
     if (isMe) {
       return msg;
+    }
+    if(callvideo){
+      return  Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          msg,
+        ],
+      );
     }
     return Row(
       children: <Widget>[

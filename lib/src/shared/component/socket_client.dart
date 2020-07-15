@@ -130,7 +130,12 @@ class JoinRoom {
     });
   }
 
+  ready() {
+    _socket.on('ready', (data){
+     onMessage(READY_EVENT,data);
+    });
 
+  }
 
   setOnListener(Function onListener) {
     _socket.on("notify_msg", (data) {

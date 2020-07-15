@@ -131,6 +131,7 @@ class Signaling {
           });
     });
   }
+
 void endCalls(Function endCall){
   _socket.on('endCall', (data){
     print('Data end là:$data');
@@ -218,16 +219,16 @@ void endCalls(Function endCall){
           }
           var pc = await _createPeerConnection(false,id);
           peerConnection = pc;
-          pc.onIceCandidate = (candidate) {
-            _socket.emit('candidate', {
-              'type': 'candidate',
-              'label': candidate.sdpMlineIndex,
-              'id': candidate.sdpMid,
-              'candidate': candidate.candidate,
-              'idTo': id,
-              'token': token
-            });
-          };
+//          pc.onIceCandidate = (candidate) {
+////            _socket.emit('candidate', {
+////              'type': 'candidate',
+////              'label': candidate.sdpMlineIndex,
+////              'id': candidate.sdpMid,
+////              'candidate': candidate.candidate,
+////              'idTo': id,
+////              'token': token
+////            });
+//          };
           await pc.setRemoteDescription(new RTCSessionDescription(
               data['sdp']['sdp'], data['sdp']['type']));
           await _createAnswer(id, pc, media, token);
@@ -318,6 +319,7 @@ void endCalls(Function endCall){
   hasUserMedia() {
     return navigator.getUserMedia;
   }
+
 }
 
 enum handlePage { connecting, online, not_online }
