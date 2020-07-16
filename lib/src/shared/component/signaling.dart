@@ -68,7 +68,7 @@ class Signaling {
     ]
   };
 
-  Signaling(this.token);
+  Signaling(this.token,this.displayname);
   final Map<String, dynamic> _config = {
     'mandatory': {},
     'optional': [
@@ -124,12 +124,6 @@ class Signaling {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
-    _socket.on('ready', (data){
-      _createPeerConnection(false,peer_id).then((pc) {
-            peerConnection = pc;
-            _createOffer(data['idFrom'], pc, 'video', token,name);
-          });
-    });
   }
 
 void endCalls(Function endCall){
@@ -219,16 +213,6 @@ void endCalls(Function endCall){
           }
           var pc = await _createPeerConnection(false,id);
           peerConnection = pc;
-//          pc.onIceCandidate = (candidate) {
-////            _socket.emit('candidate', {
-////              'type': 'candidate',
-////              'label': candidate.sdpMlineIndex,
-////              'id': candidate.sdpMid,
-////              'candidate': candidate.candidate,
-////              'idTo': id,
-////              'token': token
-////            });
-//          };
           await pc.setRemoteDescription(new RTCSessionDescription(
               data['sdp']['sdp'], data['sdp']['type']));
           await _createAnswer(id, pc, media, token);
@@ -267,6 +251,15 @@ void endCalls(Function endCall){
                 _remoteCandidates.add(candidate);
               }
             }
+        }
+        break;
+      case READY_EVENT:
+        {
+          _createPeerConnection(false,data['idFrom']).then((pc){
+            peerConnection = pc;
+            _createOffer(data['idFrom'], pc, 'video', token,displayname);
+          });
+
         }
         break;
     }

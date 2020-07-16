@@ -52,7 +52,6 @@ class SimpleWebSocket {
     List<String> cookie = null;
     socket = IO.io(url, {
       'path': '/socket-chat/',
-//    'path': '/socket.io',
       'transports': ['polling'],
       'request-header-processer': (requestHeader) {
         print("get request header " + requestHeader.toString());

@@ -31,6 +31,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   JoinRoom _joinRoom;
   List<Message> _chatMessages;
+  Signaling _signaling;
   ScrollController _chatLVController;
   TextEditingController _chatTfController;
   _buildMessage(Message message, bool isMe, bool callvideo) {
@@ -173,6 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatListScrollToBottom();
     _joinRoom = JoinRoom();
     _chatMessages = List();
+    _signaling=Signaling(widget.token,widget.displayName);
     _chatLVController = ScrollController(initialScrollOffset: 0.0);
     _chatTfController = TextEditingController();
     super.initState();
@@ -287,6 +289,9 @@ class _ChatScreenState extends State<ChatScreen> {
             iconSize: 30.0,
             color: Colors.white,
             onPressed: () {
+              if (_signaling != null) {
+                _signaling.invite(widget.peerId, 'video', false, widget.displayName);
+              }
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext ctx) => RenderVideo(widget.token,
                       widget.idForme, widget.peerId, widget.displayName)));

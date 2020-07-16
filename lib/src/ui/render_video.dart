@@ -29,10 +29,6 @@ class _RenderVideoState extends State<RenderVideo> {
     _connect();
     _signaling.endCalls(endCalls);
     initRenderers();
-    if (widget.peerID != null && widget.dissplayName != null) {
-      _invitePeer(widget.peerID, false);
-      print("id perr : ${widget.peerID}");
-    }
   }
 
   initRenderers() async {
@@ -50,7 +46,7 @@ class _RenderVideoState extends State<RenderVideo> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = Signaling(widget.token)..connect();
+      _signaling = Signaling(widget.token,widget.dissplayName)..connect();
       _signaling.onStateChange = (SignalingState state) {
         switch (state) {
           case SignalingState.CallStateNew:
@@ -92,16 +88,13 @@ class _RenderVideoState extends State<RenderVideo> {
     }
   }
 
-  _invitePeer(peerId, use_screen) async {
-    if (_signaling != null) {
-      _signaling.invite(peerId, 'video', use_screen, widget.dissplayName);
-    }
-  }
+
 
   _hangUp() {
     if (_signaling != null) {
-      _signaling.bye();
       _signaling.endCall(widget.peerID);
+      _signaling.bye();
+      if (_signaling != null) _signaling.close();
       _signaling.onRemoveRemoteStream = ((stream) {
         _remoteRenderer.srcObject = null;
       });
