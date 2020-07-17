@@ -1,19 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shopapp/src/provider/auth.dart';
-import 'package:shopapp/src/screen/oder_screen.dart';
-import 'package:shopapp/src/screen/user_product_screen.dart';
+import 'package:rtc_uoi/src/shared/style/colors.dart';
 
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
+  final urlAvt;
+  final name;
+  final phone;
+  AppDrawer(this.urlAvt,this.name,this.phone);
+
+  @override
+  _AppDrawerState createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: <Widget>[
-          AppBar(
-            title: Text('Hello '),
-            automaticallyImplyLeading: false,
+          Container(
+            height: 300,
+            decoration: BoxDecoration(
+              color: Palette.BACKGROUND,
+            ),
+            child:  Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(
+                          "https://uoi.bachasoftware.com/api/avatars/${widget.urlAvt}"),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    margin: EdgeInsets.only(top: 10.0),
+                    child: Text(widget.name,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
+                  ),
+                ),
+                Center(
+                  child: Container(
+                      margin: EdgeInsets.only(top: 10.0),
+                      child: Text("Phone: ${widget.phone}",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
+                  ),
+                ),
+              ],
+            ),
           ),
           Divider(),
           ListTile(
@@ -28,8 +64,7 @@ class AppDrawer extends StatelessWidget {
             leading: Icon(Icons.payment),
             title: Text('Orders'),
             onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(OrdersScreen.routeName);
+
             },
           ),
           Divider(),
@@ -37,8 +72,7 @@ class AppDrawer extends StatelessWidget {
             leading: Icon(Icons.edit),
             title: Text('Manage Product'),
             onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(UserProductScreen.routerName);
+
             },
           ),
           Divider(),
@@ -48,7 +82,7 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
               Navigator.of(context).pushReplacementNamed('/');
-              Provider.of<Auth>(context,listen: false).logout();
+
             },
           )
         ],

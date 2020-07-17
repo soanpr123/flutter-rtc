@@ -115,15 +115,18 @@ class Signaling {
 
     }
   }
-  void endCall(int id) {
+  void endCall(int id)  {
     _socket.emit('endCall', {'idTo': id, 'token': token});
   }
 
-  void invite(int peer_id, String media, use_screen,String name) {
+  void invite(int peer_id, String media, use_screen,String name)async {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
+    _localStream= await createStream(use_screen);
+    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
+    pc.addStream(_localStream);
   }
 
 void endCalls(Function endCall){
@@ -141,6 +144,7 @@ void endCalls(Function endCall){
     }
     if (peerConnection != null) {
       peerConnection.close();
+
     }
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateBye);
@@ -174,7 +178,7 @@ void endCalls(Function endCall){
 
   _createPeerConnection(user_screen,int id) async {
     _localStream = await createStream(user_screen);
-    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
+    RTCPeerConnection pc = await createPeerConnection(_iceServers,_config);
     pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
       _socket.emit('candidate', {

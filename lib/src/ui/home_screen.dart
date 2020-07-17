@@ -6,6 +6,7 @@ import 'package:rtc_uoi/src/model/invitcall.dart';
 import 'package:rtc_uoi/src/model/user_profile_MD.dart';
 import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/shared/widget/app_drawer.dart';
 import 'package:rtc_uoi/src/shared/widget/friend_item.dart';
 import 'package:rtc_uoi/src/ui/calling_screen.dart';
 
@@ -22,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final friendBloc = FriendBloc();
   final profileBloc = ProfileBloc();
   String nameUser = '';
+  String avt='';
+  String phone;
   JoinRoom _joinRoom;
   Future<void> refrestProducts() async {
     await friendBloc.getUser(widget.token);
@@ -46,8 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
   getData(data) {
     Proffile _profile = data;
     var decode = Uri.decodeFull(_profile.infoUser.displayName);
-    print("data là pro : $decode");
-    nameUser = decode;
+
+   setState(() {
+     nameUser = decode;
+     avt=_profile.infoUser.avatars;
+     phone=_profile.infoUser.phone;
+   });
+    print("data là pro : $phone");
   }
 
   invitCall(data) {
@@ -79,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text("U-Oi Communication Tool"),
         elevation: 0.0,
       ),
+      drawer:  AppDrawer(avt,nameUser,phone),
       body: Container(
           decoration: BoxDecoration(
             border: Border.all(
