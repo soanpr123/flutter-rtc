@@ -193,4 +193,6 @@ class JoinRoom {
       print('send: $event - $data');
     }
   }
+  dispose(){
+  }
 }

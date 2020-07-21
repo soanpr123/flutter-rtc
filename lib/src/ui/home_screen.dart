@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:rtc_uoi/src/bloc/friend_bloc.dart';
 import 'package:rtc_uoi/src/bloc/profile_bloc.dart';
@@ -20,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   final friendBloc = FriendBloc();
   final profileBloc = ProfileBloc();
   String nameUser = '';
@@ -58,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print("data là pro : $phone");
   }
 
-  invitCall(data) {
+  invitCall(data) async{
     print("invitCall là: $data");
     if (null == data || data.toString().isEmpty) {
       return;
@@ -67,15 +70,15 @@ class _HomeScreenState extends State<HomeScreen> {
     var decode = Uri.decodeFull(_invitcallClass.displayName);
     print("tên người gọi : $decode");
     print("ID người gọi : ${_invitcallClass.idFrom}");
-    setState(() {
-      Navigator.of(context).push(MaterialPageRoute(
+
+     await Navigator.of(this.context).push(MaterialPageRoute(
           builder: (BuildContext ctx) => CallingScreen(
                 name: decode,
                 idForm: _invitcallClass.idFrom,
                 token: widget.token,
                 idFome: widget.idFome,
               )));
-    });
+
   }
 
   @override

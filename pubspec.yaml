@@ -37,6 +37,8 @@ dependencies:
   flutter_webrtc: ^0.2.8
   wakelock: ^0.1.4+2
   flappy_search_bar: ^1.7.2
+  shared_preferences: ^0.5.8
+  provider: ^4.3.1
 
 dev_dependencies:
   flutter_test:

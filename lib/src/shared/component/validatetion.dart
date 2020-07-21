@@ -3,16 +3,19 @@ class Validation {
     if (pass == null) {
       return 'pasword invvalid';
     }
-    if (pass.length < 0) {
+    if (pass.length < 3) {
       return 'password require minimum 1 charactor';
     }
     return null;
   }
 
   static String validationEmail(String email) {
-    if (email == null) {
-      return 'Email invalid';
-    }
-    return null;
+    Pattern pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(email))
+      return 'Enter Valid Email';
+    else
+      return null;
   }
 }

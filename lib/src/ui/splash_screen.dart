@@ -37,6 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     children: <Widget>[
                     Container(
                       child:Image(
+                        width: 250,
                         image: AssetImage('assets/images/uoi_logo.png')
                       ) ,
                     ),

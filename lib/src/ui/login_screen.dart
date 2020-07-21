@@ -11,6 +11,7 @@ import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/component/toast.dart';
 import 'package:rtc_uoi/src/shared/style/colors.dart';
 import 'package:rtc_uoi/src/ui/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -33,14 +34,13 @@ class AuthScreen extends StatelessWidget {
               width: deviceSize.width,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Flexible(
                     child: Image(
-                        width: 316,
-                        height: 200,
+                        width: 260,
                         image: AssetImage('assets/images/uoi_logo.png')),
                   ),
+                  SizedBox(height: 20,),
                   Flexible(
                     flex: deviceSize.width > 600 ? 2 : 1,
                     child: AuthCard(),
@@ -93,13 +93,15 @@ class _AuthCardState extends State<AuthCard> {
             ));
   }
 
-  void _submit() {
+  void _submit()async {
     setState(() {
       _isLoading = true;
     });
+
     if (_authMode == AuthMode.Login) {
       loginBloc.Login(
           email: _emailController.text.trim(),
+          Password: _passwordController.text.trim(),
           successBlock: (data) {
             print("data là  $data");
 //            List<LoginMd> loginMd = data;
@@ -117,6 +119,8 @@ class _AuthCardState extends State<AuthCard> {
                       )));
               _simpleWebSocket.connect(
                   Config.REACT_APP_URL_SOCKETIO, data['webToken']);
+
+
             } else {
               ToastShare().getToast("Password is error");
             }
@@ -273,4 +277,5 @@ class _AuthCardState extends State<AuthCard> {
       ),
     );
   }
+
 }

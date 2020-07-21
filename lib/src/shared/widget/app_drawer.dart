@@ -60,7 +60,7 @@ class _AppDrawerState extends State<AppDrawer> {
             leading: Icon(Icons.home),
             title: Text('Home'),
             onTap: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>HomeScreen(token: widget.token,idFome: widget.id,)));
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>new HomeScreen(token: widget.token,idFome: widget.id,)));
             },
           ),
           Divider(),
