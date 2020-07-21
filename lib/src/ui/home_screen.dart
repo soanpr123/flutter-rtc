@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final friendBloc = FriendBloc();
   final profileBloc = ProfileBloc();
   String nameUser = '';
-  String avt='';
+  String avt = '';
   String phone;
   JoinRoom _joinRoom;
   Future<void> refrestProducts() async {
@@ -50,11 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Proffile _profile = data;
     var decode = Uri.decodeFull(_profile.infoUser.displayName);
 
-   setState(() {
-     nameUser = decode;
-     avt=_profile.infoUser.avatars;
-     phone=_profile.infoUser.phone;
-   });
+    setState(() {
+      nameUser = decode;
+      avt = _profile.infoUser.avatars;
+      phone = _profile.infoUser.phone;
+    });
     print("data là pro : $phone");
   }
 
@@ -80,14 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+      Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Palette.BACKGROUND,
       appBar: AppBar(
         title: Text("U-Oi Communication Tool"),
         elevation: 0.0,
       ),
-      drawer:  AppDrawer(avt,nameUser,phone),
+      drawer: AppDrawer(avt, nameUser, phone,widget.token,widget.idFome),
       body: Container(
           decoration: BoxDecoration(
             border: Border.all(

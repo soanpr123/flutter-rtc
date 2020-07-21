@@ -19,15 +19,15 @@ class Proffile {
 
   String message;
   InfoUser infoUser;
-  List<InfoFriend> infoFriends;
-  List<dynamic> infoInvits;
+  List<Info> infoFriends;
+  List<Info> infoInvits;
   String avatarUser;
 
   factory Proffile.fromJson(Map<String, dynamic> json) => Proffile(
     message: json["message"],
     infoUser: InfoUser.fromJson(json["infoUser"]),
-    infoFriends: List<InfoFriend>.from(json["infoFriends"].map((x) => InfoFriend.fromJson(x))),
-    infoInvits: List<dynamic>.from(json["infoInvits"].map((x) => x)),
+    infoFriends: List<Info>.from(json["infoFriends"].map((x) => Info.fromJson(x))),
+    infoInvits: List<Info>.from(json["infoInvits"].map((x) => Info.fromJson(x))),
     avatarUser: json["avatarUser"],
   );
 
@@ -35,35 +35,38 @@ class Proffile {
     "message": message,
     "infoUser": infoUser.toJson(),
     "infoFriends": List<dynamic>.from(infoFriends.map((x) => x.toJson())),
-    "infoInvits": List<dynamic>.from(infoInvits.map((x) => x)),
+    "infoInvits": List<dynamic>.from(infoInvits.map((x) => x.toJson())),
     "avatarUser": avatarUser,
   };
 }
 
-class InfoFriend {
-  InfoFriend({
+class Info {
+  Info({
     this.id,
     this.firstName,
     this.lastName,
     this.displayName,
     this.status,
     this.avatars,
+    this.email,
   });
 
   int id;
   String firstName;
   String lastName;
   String displayName;
-  Status status;
+  String status;
   String avatars;
+  String email;
 
-  factory InfoFriend.fromJson(Map<String, dynamic> json) => InfoFriend(
+  factory Info.fromJson(Map<String, dynamic> json) => Info(
     id: json["id"],
     firstName: json["first_name"],
     lastName: json["last_name"],
     displayName: json["display_name"],
-    status: statusValues.map[json["status"]],
-    avatars: json["avatars"],
+    status: json["status"],
+    avatars: json["avatars"] == null ? null : json["avatars"],
+    email: json["email"] == null ? null : json["email"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -71,17 +74,11 @@ class InfoFriend {
     "first_name": firstName,
     "last_name": lastName,
     "display_name": displayName,
-    "status": statusValues.reverse[status],
-    "avatars": avatars,
+    "status": status,
+    "avatars": avatars == null ? null : avatars,
+    "email": email == null ? null : email,
   };
 }
-
-enum Status { OFFLINE, ONLINE }
-
-final statusValues = EnumValues({
-  "Offline": Status.OFFLINE,
-  "Online": Status.ONLINE
-});
 
 class InfoUser {
   InfoUser({
@@ -104,10 +101,10 @@ class InfoUser {
   String lastName;
   String email;
   String phone;
-  String company;
+  dynamic company;
   String displayName;
-  String bio;
-  Status status;
+  dynamic bio;
+  String status;
   String friendsList;
   String invitations;
   String avatars;
@@ -121,7 +118,7 @@ class InfoUser {
     company: json["company"],
     displayName: json["display_name"],
     bio: json["bio"],
-    status: statusValues.map[json["status"]],
+    status: json["status"],
     friendsList: json["friends_list"],
     invitations: json["invitations"],
     avatars: json["avatars"],
@@ -136,23 +133,9 @@ class InfoUser {
     "company": company,
     "display_name": displayName,
     "bio": bio,
-    "status": statusValues.reverse[status],
+    "status": status,
     "friends_list": friendsList,
     "invitations": invitations,
     "avatars": avatars,
   };
-}
-
-class EnumValues<T> {
-  Map<String, T> map;
-  Map<T, String> reverseMap;
-
-  EnumValues(this.map);
-
-  Map<T, String> get reverse {
-    if (reverseMap == null) {
-      reverseMap = map.map((k, v) => new MapEntry(v, k));
-    }
-    return reverseMap;
-  }
 }

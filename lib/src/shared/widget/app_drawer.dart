@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:rtc_uoi/src/shared/style/colors.dart';
+import 'package:rtc_uoi/src/ui/friend_screen.dart';
+import 'package:rtc_uoi/src/ui/home_screen.dart';
 
 
 class AppDrawer extends StatefulWidget {
-  final urlAvt;
-  final name;
-  final phone;
-  AppDrawer(this.urlAvt,this.name,this.phone);
+  final String urlAvt;
+  final String name;
+  final String phone;
+  final String token;
+  final int  id;
+  AppDrawer(this.urlAvt,this.name,this.phone,this.token,this.id);
 
   @override
   _AppDrawerState createState() => _AppDrawerState();
@@ -53,24 +57,24 @@ class _AppDrawerState extends State<AppDrawer> {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.shop),
-            title: Text('shop'),
+            leading: Icon(Icons.home),
+            title: Text('Home'),
             onTap: () {
-              Navigator.of(context).pushReplacementNamed('/');
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>HomeScreen(token: widget.token,idFome: widget.id,)));
             },
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.payment),
-            title: Text('Orders'),
+            leading: Icon(Icons.person_add),
+            title: Text('Add Friend'),
             onTap: () {
-
+              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>Search_Screen(token: widget.token,id: widget.id,)));
             },
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('Manage Product'),
+            leading: Icon(Icons.info),
+            title: Text('Infor'),
             onTap: () {
 
             },
