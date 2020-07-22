@@ -16,24 +16,6 @@ typedef void OnMessageCallback(String tag,dynamic msg);
 typedef void OnCloseCallback(int code, String reason);
 typedef void OnOpenCallback();
 
-class ReadSender implements StreamConsumer<List<int>> {
-  IO.Socket socket;
-
-  ReadSender(IO.Socket this.socket);
-
-  @override
-  Future addStream(Stream<List<int>> stream) {
-    return stream.transform(utf8.decoder).forEach((content) {
-      print(content);
-      this.socket.emit("chat message", content);
-    }).timeout(Duration(days: 30));
-  }
-
-  @override
-  Future close() {
-    return null;
-  }
-}
 
 class SimpleWebSocket {
   int idFriend = 0;
@@ -49,51 +31,18 @@ class SimpleWebSocket {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
     stdout.writeln('Type something');
-    List<String> cookie = null;
     socket = IO.io(url, {
       'path': '/socket-chat/',
       'transports': ['polling'],
-      'request-header-processer': (requestHeader) {
-        print("get request header " + requestHeader.toString());
-        if (cookie != null) {
-          requestHeader.add('cookie', cookie);
-          print("set cookie success");
-        } else {
-          print("set cookie faield");
-        }
-      },
-      'response-header-processer': (responseHeader) {
-        print("get response header " + responseHeader.toString());
-        if (responseHeader['set-cookie'] != null) {
-          cookie = responseHeader['set-cookie'];
-          print("receive cookie success");
-        } else {
-          print("receive cookie failed");
-        }
-      },
     });
 
     socket.on('connect', (_) {
-      print('connect happened');
       socket.emit("user", {"token": token});
 //      onOpen();
-    });
-    socket.on('req-header-event', (data) {
-      print("req-header-event " + data.toString());
-    });
-    socket.on('resp-header-event', (data) {
-      print("resp-header-event " + data.toString());
     });
     socket.on(CLIENT_ID_EVENT, (data) {
       onMessage( CLIENT_ID_EVENT,data);
     });
-
-
-    socket.on('event', (data) => print("received " + data));
-    socket.on('disconnect', (_) => print('disconnect'));
-    socket.on('fromServer', (_) => print(_));
-    await stdin.pipe(ReadSender(socket));
-//      joinRoom();
   }
 
   send(event, data) {
@@ -107,7 +56,7 @@ class SimpleWebSocket {
 class JoinRoom {
   OnMessageCallback onMessage;
   IO.Socket _socket = IO.io(Config.REACT_APP_URL_SOCKETIO, {
-//    'path': '/socket-chat/',
+    'path': '/socket-chat/',
     'transports': ['polling'],
   });
 
@@ -192,5 +141,8 @@ class JoinRoom {
       _socket.emit(event, data);
       print('send: $event - $data');
     }
+  }
+  dispose(){
+    _socket.close();
   }
 }

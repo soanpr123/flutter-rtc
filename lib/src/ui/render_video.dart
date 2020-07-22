@@ -94,10 +94,7 @@ class _RenderVideoState extends State<RenderVideo> {
     if (_signaling != null) {
       _signaling.endCall(widget.peerID);
       _signaling.bye();
-      if (_signaling != null) _signaling.close();
-      _signaling.onRemoveRemoteStream = ((stream) {
-        _remoteRenderer.srcObject = null;
-      });
+     _signaling.close();
     }
   }
 

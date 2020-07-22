@@ -24,20 +24,23 @@ class Proffile {
   String avatarUser;
 
   factory Proffile.fromJson(Map<String, dynamic> json) => Proffile(
-    message: json["message"],
-    infoUser: InfoUser.fromJson(json["infoUser"]),
-    infoFriends: List<Info>.from(json["infoFriends"].map((x) => Info.fromJson(x))),
-    infoInvits: List<Info>.from(json["infoInvits"].map((x) => Info.fromJson(x))),
-    avatarUser: json["avatarUser"],
-  );
+        message: json["message"],
+        infoUser: InfoUser.fromJson(json["infoUser"]),
+        infoFriends:
+            List<Info>.from(json["infoFriends"].map((x) => Info.fromJson(x))),
+        infoInvits: json["infoInvits"] == null
+            ? List<Info>()
+            : List<Info>.from(json["infoInvits"].map((x) => Info.fromJson(x))),
+        avatarUser: json["avatarUser"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "message": message,
-    "infoUser": infoUser.toJson(),
-    "infoFriends": List<dynamic>.from(infoFriends.map((x) => x.toJson())),
-    "infoInvits": List<dynamic>.from(infoInvits.map((x) => x.toJson())),
-    "avatarUser": avatarUser,
-  };
+        "message": message,
+        "infoUser": infoUser.toJson(),
+        "infoFriends": List<dynamic>.from(infoFriends.map((x) => x.toJson())),
+        "infoInvits": List<dynamic>.from(infoInvits.map((x) => x.toJson())),
+        "avatarUser": avatarUser,
+      };
 }
 
 class Info {
@@ -60,24 +63,24 @@ class Info {
   String email;
 
   factory Info.fromJson(Map<String, dynamic> json) => Info(
-    id: json["id"],
-    firstName: json["first_name"],
-    lastName: json["last_name"],
-    displayName: json["display_name"],
-    status: json["status"],
-    avatars: json["avatars"] == null ? null : json["avatars"],
-    email: json["email"] == null ? null : json["email"],
-  );
+        id: json["id"],
+        firstName: json["first_name"],
+        lastName: json["last_name"],
+        displayName: json["display_name"],
+        status: json["status"],
+        avatars: json["avatars"] == null ? null : json["avatars"],
+        email: json["email"] == null ? null : json["email"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "first_name": firstName,
-    "last_name": lastName,
-    "display_name": displayName,
-    "status": status,
-    "avatars": avatars == null ? null : avatars,
-    "email": email == null ? null : email,
-  };
+        "id": id,
+        "first_name": firstName,
+        "last_name": lastName,
+        "display_name": displayName,
+        "status": status,
+        "avatars": avatars == null ? null : avatars,
+        "email": email == null ? null : email,
+      };
 }
 
 class InfoUser {
@@ -110,32 +113,32 @@ class InfoUser {
   String avatars;
 
   factory InfoUser.fromJson(Map<String, dynamic> json) => InfoUser(
-    id: json["id"],
-    firstName: json["first_name"],
-    lastName: json["last_name"],
-    email: json["email"],
-    phone: json["phone"],
-    company: json["company"],
-    displayName: json["display_name"],
-    bio: json["bio"],
-    status: json["status"],
-    friendsList: json["friends_list"],
-    invitations: json["invitations"],
-    avatars: json["avatars"],
-  );
+        id: json["id"],
+        firstName: json["first_name"],
+        lastName: json["last_name"],
+        email: json["email"],
+        phone: json["phone"],
+        company: json["company"],
+        displayName: json["display_name"],
+        bio: json["bio"],
+        status: json["status"],
+        friendsList: json["friends_list"],
+        invitations: json["invitations"],
+        avatars: json["avatars"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "first_name": firstName,
-    "last_name": lastName,
-    "email": email,
-    "phone": phone,
-    "company": company,
-    "display_name": displayName,
-    "bio": bio,
-    "status": status,
-    "friends_list": friendsList,
-    "invitations": invitations,
-    "avatars": avatars,
-  };
+        "id": id,
+        "first_name": firstName,
+        "last_name": lastName,
+        "email": email,
+        "phone": phone,
+        "company": company,
+        "display_name": displayName,
+        "bio": bio,
+        "status": status,
+        "friends_list": friendsList,
+        "invitations": invitations,
+        "avatars": avatars,
+      };
 }

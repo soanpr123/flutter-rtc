@@ -1,13 +1,17 @@
 import 'dart:convert';
+import 'dart:math';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:rtc_uoi/src/bloc/login_bloc.dart';
+import 'package:rtc_uoi/src/model/loginMD.dart';
 import 'package:rtc_uoi/src/shared/component/connfig.dart';
 import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/component/toast.dart';
 import 'package:rtc_uoi/src/shared/style/colors.dart';
 import 'package:rtc_uoi/src/ui/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -30,18 +34,18 @@ class AuthScreen extends StatelessWidget {
               width: deviceSize.width,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Flexible(
                     child: Image(
-                        width: 400,
-                        height: 200,
-                        image: AssetImage('assets/images/logo.JPG')),
+                        width: 260,
+                        image: AssetImage('assets/images/uoi_logo.png')),
+                  ),
+                  SizedBox(
+                    height: 20,
                   ),
                   Flexible(
                     flex: deviceSize.width > 600 ? 2 : 1,
-                    child:
-                        Container(height: 300, width: 300, child: AuthCard()),
+                    child: AuthCard(),
                   ),
                 ],
               ),
@@ -91,13 +95,16 @@ class _AuthCardState extends State<AuthCard> {
             ));
   }
 
-  void _submit() {
+  void _submit() async {
     setState(() {
       _isLoading = true;
     });
+
     if (_authMode == AuthMode.Login) {
+      final prefs = await SharedPreferences.getInstance();
       loginBloc.Login(
           email: _emailController.text.trim(),
+          Password: _passwordController.text.trim(),
           successBlock: (data) {
             print("data là  $data");
 //            List<LoginMd> loginMd = data;
@@ -115,8 +122,17 @@ class _AuthCardState extends State<AuthCard> {
                       )));
               _simpleWebSocket.connect(
                   Config.REACT_APP_URL_SOCKETIO, data['webToken']);
+              final userData = jsonEncode({
+                'id': data['id'],
+                'webToken': data['webToken'],
+                'password': data['password'],
+                'pasinput': _passwordController.text.trim(),
+                'saltKey': data['saltKey']
+              });
+              prefs.setString('userData', userData);
+              print(userData);
             } else {
-              ToastShare().getToast("Email or Password is wrong");
+              ToastShare().getToast("Password is error");
             }
             return;
           },
@@ -125,7 +141,7 @@ class _AuthCardState extends State<AuthCard> {
             return;
           });
     } else {
-      ///Singupp
+      // Singup here
     }
     setState(() {
       _isLoading = false;
@@ -154,6 +170,7 @@ class _AuthCardState extends State<AuthCard> {
     _passwordController.addListener(() {
       loginBloc.passSink.add(_passwordController.text);
     });
+
   }
 
   @override
@@ -271,4 +288,6 @@ class _AuthCardState extends State<AuthCard> {
       ),
     );
   }
+
+
 }
