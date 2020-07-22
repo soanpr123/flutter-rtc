@@ -40,7 +40,9 @@ class AuthScreen extends StatelessWidget {
                         width: 260,
                         image: AssetImage('assets/images/uoi_logo.png')),
                   ),
-                  SizedBox(height: 20,),
+                  SizedBox(
+                    height: 20,
+                  ),
                   Flexible(
                     flex: deviceSize.width > 600 ? 2 : 1,
                     child: AuthCard(),
@@ -93,12 +95,13 @@ class _AuthCardState extends State<AuthCard> {
             ));
   }
 
-  void _submit()async {
+  void _submit() async {
     setState(() {
       _isLoading = true;
     });
 
     if (_authMode == AuthMode.Login) {
+      final prefs = await SharedPreferences.getInstance();
       loginBloc.Login(
           email: _emailController.text.trim(),
           Password: _passwordController.text.trim(),
@@ -119,8 +122,15 @@ class _AuthCardState extends State<AuthCard> {
                       )));
               _simpleWebSocket.connect(
                   Config.REACT_APP_URL_SOCKETIO, data['webToken']);
-
-
+              final userData = jsonEncode({
+                'id': data['id'],
+                'webToken': data['webToken'],
+                'password': data['password'],
+                'pasinput': _passwordController.text.trim(),
+                'saltKey': data['saltKey']
+              });
+              prefs.setString('userData', userData);
+              print(userData);
             } else {
               ToastShare().getToast("Password is error");
             }
@@ -131,7 +141,7 @@ class _AuthCardState extends State<AuthCard> {
             return;
           });
     } else {
-      ///Singupp
+      // Singup here
     }
     setState(() {
       _isLoading = false;
@@ -160,6 +170,7 @@ class _AuthCardState extends State<AuthCard> {
     _passwordController.addListener(() {
       loginBloc.passSink.add(_passwordController.text);
     });
+
   }
 
   @override
@@ -277,5 +288,6 @@ class _AuthCardState extends State<AuthCard> {
       ),
     );
   }
+
 
 }

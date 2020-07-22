@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/style/colors.dart';
 import 'package:rtc_uoi/src/ui/friend_screen.dart';
 import 'package:rtc_uoi/src/ui/home_screen.dart';
-
+import 'package:rtc_uoi/src/ui/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDrawer extends StatefulWidget {
   final String urlAvt;
   final String name;
   final String phone;
   final String token;
-  final int  id;
-  AppDrawer(this.urlAvt,this.name,this.phone,this.token,this.id);
+  final int id;
+  AppDrawer(this.urlAvt, this.name, this.phone, this.token, this.id);
 
   @override
   _AppDrawerState createState() => _AppDrawerState();
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  JoinRoom _joinRoom=JoinRoom();
+  Future<Null> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('userData', null);
+    setState(() {
+      _joinRoom.dispose();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -27,7 +38,7 @@ class _AppDrawerState extends State<AppDrawer> {
             decoration: BoxDecoration(
               color: Palette.BACKGROUND,
             ),
-            child:  Column(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Center(
@@ -42,15 +53,21 @@ class _AppDrawerState extends State<AppDrawer> {
                 ),
                 Center(
                   child: Container(
-                    margin: EdgeInsets.only(top: 10.0),
-                    child: Text(widget.name,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
-                  ),
+                      margin: EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        widget.name,
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      )),
                 ),
                 Center(
                   child: Container(
                       margin: EdgeInsets.only(top: 10.0),
-                      child: Text("Phone: ${widget.phone}",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
-                  ),
+                      child: Text(
+                        "Phone: ${widget.phone}",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      )),
                 ),
               ],
             ),
@@ -60,7 +77,11 @@ class _AppDrawerState extends State<AppDrawer> {
             leading: Icon(Icons.home),
             title: Text('Home'),
             onTap: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext ctx)=>new HomeScreen(token: widget.token,idFome: widget.id,)));
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (BuildContext ctx) => new HomeScreen(
+                        token: widget.token,
+                        idFome: widget.id,
+                      )));
             },
           ),
           Divider(),
@@ -68,16 +89,18 @@ class _AppDrawerState extends State<AppDrawer> {
             leading: Icon(Icons.person_add),
             title: Text('Add Friend'),
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext ctx)=>Search_Screen(token: widget.token,id: widget.id,)));
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext ctx) => Search_Screen(
+                        token: widget.token,
+                        id: widget.id,
+                      )));
             },
           ),
           Divider(),
           ListTile(
             leading: Icon(Icons.info),
             title: Text('Infor'),
-            onTap: () {
-
-            },
+            onTap: () {},
           ),
           Divider(),
           ListTile(
@@ -85,7 +108,9 @@ class _AppDrawerState extends State<AppDrawer> {
             title: Text('Logout'),
             onTap: () {
               Navigator.of(context).pop();
-              Navigator.of(context).pushReplacementNamed('/');
+              logout();
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (BuildContext ctx) => SplashScreen()));
 
             },
           )

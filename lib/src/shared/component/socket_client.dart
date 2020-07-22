@@ -194,5 +194,6 @@ class JoinRoom {
     }
   }
   dispose(){
+    _socket.close();
   }
 }
