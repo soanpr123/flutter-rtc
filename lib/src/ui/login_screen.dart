@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:rtc_uoi/src/bloc/login_bloc.dart';
-import 'package:rtc_uoi/src/model/loginMD.dart';
 import 'package:rtc_uoi/src/shared/component/connfig.dart';
 import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/component/toast.dart';
@@ -37,13 +34,14 @@ class AuthScreen extends StatelessWidget {
                 children: <Widget>[
                   Flexible(
                     child: Image(
-                        width: 316,
+                        width: 400,
                         height: 200,
-                        image: AssetImage('assets/images/uoi_logo.png')),
+                        image: AssetImage('assets/images/logo.JPG')),
                   ),
                   Flexible(
                     flex: deviceSize.width > 600 ? 2 : 1,
-                    child: AuthCard(),
+                    child:
+                        Container(height: 300, width: 300, child: AuthCard()),
                   ),
                 ],
               ),
@@ -118,7 +116,7 @@ class _AuthCardState extends State<AuthCard> {
               _simpleWebSocket.connect(
                   Config.REACT_APP_URL_SOCKETIO, data['webToken']);
             } else {
-              ToastShare().getToast("Password is error");
+              ToastShare().getToast("Email or Password is wrong");
             }
             return;
           },
