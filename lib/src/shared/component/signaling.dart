@@ -68,7 +68,7 @@ class Signaling {
     ]
   };
 
-  Signaling(this.token,this.displayname);
+  Signaling(this.token, this.displayname);
   final Map<String, dynamic> _config = {
     'mandatory': {},
     'optional': [
@@ -109,45 +109,51 @@ class Signaling {
       _localStream.getVideoTracks()[0].switchCamera();
     }
   }
+
   void muteMic(bool mute) {
     if (_localStream != null) {
-      _localStream.getAudioTracks()[0].enabled=mute;
-
+      _localStream.getAudioTracks()[0].enabled = mute;
     }
   }
-  void endCall(int id)  {
+
+  void endCall(int id) {
     _socket.emit('endCall', {'idTo': id, 'token': token});
+    if (this.onStateChange != null) {
+      this.onStateChange(SignalingState.CallStateBye);
+    }
   }
 
-  void invite(int peer_id, String media, use_screen,String name)async {
+  void invite(int peer_id, String media, use_screen, String name) async {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
-    _localStream= await createStream(use_screen);
-    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
-    pc.addStream(_localStream);
   }
 
-void endCalls(Function endCall){
-  _socket.on('endCall', (data){
-    print('Data end là:$data');
-    endCall(data);
-  });
-}
+  void endCalls(Function endCall) {
+    _socket.on('endCall', (data) {
+      print('Data end là:$data');
+      endCall(data);
+      if (this.onStateChange != null) {
+        this.onStateChange(SignalingState.CallStateBye);
+      }
+    });
+  }
 
   void bye() {
     if (_localStream != null) {
       _localStream.dispose();
       _localStream = null;
-
     }
     if (peerConnection != null) {
       peerConnection.close();
-
-    }
-    if (this.onStateChange != null) {
-      this.onStateChange(SignalingState.CallStateBye);
+      peerConnection.onRemoveStream = (stream) {
+        if (this.onRemoveRemoteStream != null)
+          this.onRemoveRemoteStream(stream);
+        _remoteStreams.removeWhere((it) {
+          return (it.id == stream.id);
+        });
+      };
     }
     _remoteCandidates.clear();
   }
@@ -176,9 +182,9 @@ void endCalls(Function endCall){
     return stream;
   }
 
-  _createPeerConnection(user_screen,int id) async {
+  _createPeerConnection(user_screen, int id) async {
     _localStream = await createStream(user_screen);
-    RTCPeerConnection pc = await createPeerConnection(_iceServers,_config);
+    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
       _socket.emit('candidate', {
@@ -215,7 +221,7 @@ void endCalls(Function endCall){
           if (this.onStateChange != null) {
             this.onStateChange(SignalingState.CallStateNew);
           }
-          var pc = await _createPeerConnection(false,id);
+          var pc = await _createPeerConnection(false, id);
           peerConnection = pc;
           await pc.setRemoteDescription(new RTCSessionDescription(
               data['sdp']['sdp'], data['sdp']['type']));
@@ -231,6 +237,9 @@ void endCalls(Function endCall){
       case ANSWER_EVENT:
         {
           print("answer là : $data");
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
           _socket.emit(
               'join_call_room', {'callRoom': data['callRoom'], 'token': token});
           var pc = peerConnection;
@@ -242,29 +251,34 @@ void endCalls(Function endCall){
         break;
       case ICE_CANDIDATE_EVENT:
         {
-            print("là candicate: ${  data['label']}");
-            if (data != null) {
-              var pc = peerConnection;
-              RTCIceCandidate candidate =  new RTCIceCandidate(
-                  data['candidate'],
-                  "",
-                  data['label']);
-              if (pc != null) {
-                await pc.addCandidate(candidate);
-              } else {
-                _remoteCandidates.add(candidate);
-              }
+          print("là candicate: ${data['label']}");
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
+          if (data != null) {
+            var pc = peerConnection;
+            RTCIceCandidate candidate =
+                new RTCIceCandidate(data['candidate'], "", data['label']);
+            if (pc != null) {
+              await pc.addCandidate(candidate);
+            } else {
+              _remoteCandidates.add(candidate);
             }
+          }
         }
         break;
       case READY_EVENT:
         {
-          _createPeerConnection(false,data['idFrom']).then((pc){
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
+          _createPeerConnection(false, data['idFrom']).then((pc) {
             peerConnection = pc;
-            _createOffer(data['idFrom'], pc, 'video', token,displayname);
+            _createOffer(data['idFrom'], pc, 'video', token, displayname);
           });
-
         }
+        break;
+      default:
         break;
     }
   }
@@ -297,7 +311,8 @@ void endCalls(Function endCall){
     }
   }
 
-  _createOffer(int id, RTCPeerConnection pc, String media, String token,String name) async {
+  _createOffer(int id, RTCPeerConnection pc, String media, String token,
+      String name) async {
     try {
       RTCSessionDescription s = await pc
           .createOffer(media == 'data' ? _dc_constraints : _constraints);
@@ -316,7 +331,6 @@ void endCalls(Function endCall){
   hasUserMedia() {
     return navigator.getUserMedia;
   }
-
 }
 
 enum handlePage { connecting, online, not_online }

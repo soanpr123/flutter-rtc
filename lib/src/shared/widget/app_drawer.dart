@@ -89,6 +89,7 @@ class _AppDrawerState extends State<AppDrawer> {
             leading: Icon(Icons.person_add),
             title: Text('Add Friend'),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext ctx) => Search_Screen(
                         token: widget.token,
