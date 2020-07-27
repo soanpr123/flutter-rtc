@@ -101,10 +101,11 @@ class JoinRoom {
         .emit("new_message", {"message": masage, "time": date, "token": token});
   }
 
-  invitCalls(Function invitCall) {
+  invitCalls(Function invitCall,String token) {
     _socket.on('invitCall', (data) {
       print('invitCall $data');
-      invitCall(data);
+
+        invitCall(data);
     });
   }
 
@@ -135,7 +136,9 @@ class JoinRoom {
         {'idTo': idFrom, 'token': token, 'display_name': name});
 
   }
-
+  DeclineCall(int id,String token){
+  _socket.emit('refuseCall', { "idTo": id, "token": token, "message": 'Refuse' });
+}
   send(event, data) {
     if (_socket != null) {
       _socket.emit(event, data);

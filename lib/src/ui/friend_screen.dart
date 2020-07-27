@@ -4,7 +4,7 @@ import 'package:rtc_uoi/src/bloc/search_friend_bloc.dart';
 import 'package:rtc_uoi/src/model/search.dart';
 import 'package:rtc_uoi/src/model/searchfriendMD.dart';
 import 'package:rtc_uoi/src/model/user_profile_MD.dart';
-import 'package:rtc_uoi/src/shared/component/Datasearchh.dart';
+import 'package:rtc_uoi/src/shared/component/datasearch.dart';
 import 'package:rtc_uoi/src/shared/widget/item_inviteFriend.dart';
 
 class Search_Screen extends StatefulWidget {
