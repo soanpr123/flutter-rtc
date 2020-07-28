@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:io';
-
 import 'package:crypto/crypto.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:rtc_uoi/src/bloc/login_bloc.dart';
-import 'package:rtc_uoi/src/model/loginMD.dart';
 import 'package:rtc_uoi/src/shared/component/connfig.dart';
 import 'package:rtc_uoi/src/shared/component/socket_client.dart';
 import 'package:rtc_uoi/src/shared/component/toast.dart';
@@ -67,16 +65,19 @@ class AuthCard extends StatefulWidget {
 }
 
 class _AuthCardState extends State<AuthCard> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
+  //final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
-  Map<String, String> _authData = {
-    'email': '',
-    'password': '',
-  };
+//  Map<String, String> _authData = {
+//    'email': '',
+//    'password': '',
+//  };
   SimpleWebSocket _simpleWebSocket = SimpleWebSocket();
   var _isLoading = false;
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
+  final _fullnameController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _confirmPassController = TextEditingController();
   final loginBloc = LoginBloc();
   void _showErrorDialog(String message) {
     showDialog(
@@ -102,9 +103,9 @@ class _AuthCardState extends State<AuthCard> {
 
     if (_authMode == AuthMode.Login) {
       final prefs = await SharedPreferences.getInstance();
-      loginBloc.Login(
+      loginBloc.login(
           email: _emailController.text.trim(),
-          Password: _passwordController.text.trim(),
+          password: _passwordController.text.trim(),
           successBlock: (data) {
             print("data là  $data");
 //            List<LoginMd> loginMd = data;
@@ -141,7 +142,19 @@ class _AuthCardState extends State<AuthCard> {
             return;
           });
     } else {
-      // Singup here
+      var salt = getRandomString(16);
+      List<int> key = utf8.encode(salt);
+      List<int> bytes = utf8.encode(_passwordController.text);
+      var hmacSha256 = new Hmac(sha512, key); // HMAC-SHA256
+      var digest = hmacSha256.convert(bytes);
+      print("Digest as bytes: $salt");
+      print("Digest as hex string: $digest");
+      var hashed = {"passwordHash": digest, "salt": salt};
+      loginBloc.signUp(
+          fullname: _fullnameController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim(),
+          object: hashed,
+          email: _emailController.text.trim());
     }
     setState(() {
       _isLoading = false;
@@ -160,6 +173,11 @@ class _AuthCardState extends State<AuthCard> {
     }
   }
 
+  static const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
   @override
   void initState() {
     super.initState();
@@ -167,10 +185,22 @@ class _AuthCardState extends State<AuthCard> {
     _emailController.addListener(() {
       loginBloc.emailSink.add(_emailController.text);
     });
+
     _passwordController.addListener(() {
       loginBloc.passSink.add(_passwordController.text);
     });
 
+    _fullnameController.addListener(() {
+      loginBloc.fullNameSink.add(_fullnameController.text);
+    });
+
+    _phoneNumberController.addListener(() {
+      loginBloc.phoneNumberSink.add(_phoneNumberController.text);
+    });
+
+    _confirmPassController.addListener(() {
+      loginBloc.confirmPassSink.add(_confirmPassController.text);
+    });
   }
 
   @override
@@ -188,7 +218,7 @@ class _AuthCardState extends State<AuthCard> {
       ),
       elevation: 8.0,
       child: Container(
-        height: _authMode == AuthMode.Signup ? 500 : 260,
+        height: _authMode == AuthMode.Signup ? 550 : 300,
         constraints:
             BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
         width: deviceSize.width * 0.75,
@@ -197,6 +227,42 @@ class _AuthCardState extends State<AuthCard> {
           child: SingleChildScrollView(
             child: Column(
               children: <Widget>[
+                Center(
+                  child: Text(
+                    '${_authMode == AuthMode.Login ? 'Login' : 'Sign Up'}',
+                    style: TextStyle(fontSize: 30, color: Palette.TEXT_PRIMARY),
+                  ),
+                ),
+                Divider(
+                  thickness: 1.0,
+                  color: Colors.red,
+                ),
+                if (_authMode == AuthMode.Signup)
+                  StreamBuilder<String>(
+                      stream: loginBloc.fullNameStream,
+                      builder: (context, snapshot) {
+                        return TextFormField(
+                          controller: _fullnameController,
+                          decoration: InputDecoration(
+                              icon: Icon(Icons.person),
+                              hintText: "Nguyễn Văn A",
+                              labelText: "FullName (*)",
+                              errorText: snapshot.data),
+                        );
+                      }),
+                if (_authMode == AuthMode.Signup)
+                  StreamBuilder<String>(
+                      stream: loginBloc.phoneNumberStream,
+                      builder: (context, snapshot) {
+                        return TextFormField(
+                          controller: _phoneNumberController,
+                          decoration: InputDecoration(
+                              icon: Icon(Icons.phone),
+                              hintText: "(012) 345-6789",
+                              labelText: "Phone Number (*)",
+                              errorText: snapshot.data),
+                        );
+                      }),
                 StreamBuilder<String>(
                     stream: loginBloc.emailStream,
                     builder: (context, snapshot) {
@@ -205,7 +271,7 @@ class _AuthCardState extends State<AuthCard> {
                         decoration: InputDecoration(
                             icon: Icon(Icons.email),
                             hintText: "example@gmail.com",
-                            labelText: "Email *",
+                            labelText: "Email(*)",
                             errorText: snapshot.data),
                       );
                     }),
@@ -217,37 +283,25 @@ class _AuthCardState extends State<AuthCard> {
                         obscureText: true,
                         decoration: InputDecoration(
                             icon: Icon(Icons.lock),
-                            hintText: "password",
-                            labelText: "Passord *",
+                            hintText: "Password",
+                            labelText: "Password(*)",
                             errorText: snapshot.data),
                       );
                     }),
                 if (_authMode == AuthMode.Signup)
-                  TextFormField(
-                    enabled: _authMode == AuthMode.Signup,
-                    decoration: InputDecoration(labelText: 'Confirm Password'),
-                    obscureText: true,
-                    validator: _authMode == AuthMode.Signup
-                        ? (value) {
-                            if (value != _passwordController.text) {
-                              return 'Passwords do not match!';
-                            }
-                          }
-                        : null,
-                  ),
-                if (_authMode == AuthMode.Signup)
-                  TextFormField(
-                    enabled: _authMode == AuthMode.Signup,
-                    decoration: InputDecoration(labelText: 'Confirm Password'),
-                    obscureText: true,
-                    validator: _authMode == AuthMode.Signup
-                        ? (value) {
-                            if (value != _passwordController.text) {
-                              return 'Passwords do not match!';
-                            }
-                          }
-                        : null,
-                  ),
+                  StreamBuilder<String>(
+                      stream: loginBloc.confirmPassStream,
+                      builder: (context, snapshot) {
+                        return TextFormField(
+                          controller: _confirmPassController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                              icon: Icon(Icons.lock),
+                              hintText: "Confirm Password",
+                              labelText: "Confirm Password",
+                              errorText: snapshot.data),
+                        );
+                      }),
                 SizedBox(
                   height: 20,
                 ),
@@ -275,7 +329,7 @@ class _AuthCardState extends State<AuthCard> {
                     }),
                 FlatButton(
                   child: Text(
-                      '${_authMode == AuthMode.Login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
+                      '${_authMode == AuthMode.Login ? 'Not a member? Sign Up' : 'Already a member? Sign in'}'),
                   onPressed: _switchAuthMode,
                   padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -288,6 +342,4 @@ class _AuthCardState extends State<AuthCard> {
       ),
     );
   }
-
-
 }
