@@ -128,6 +128,7 @@ class Signaling {
       this.onStateChange(SignalingState.CallStateNew);
     }
     _socket.emit('invitCall', {'idFriend': peer_id, 'token': token});
+
   }
 
   void endCalls(Function endCall) {
@@ -186,6 +187,8 @@ class Signaling {
     _localStream = await createStream(user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     pc.addStream(_localStream);
+
+
     pc.onIceCandidate = (candidate) {
       _socket.emit('candidate', {
         'type': 'candidate',
@@ -218,6 +221,7 @@ class Signaling {
           var media = 'video';
           var id = data['idFrom'];
           print("id là : $id");
+
           if (this.onStateChange != null) {
             this.onStateChange(SignalingState.CallStateNew);
           }

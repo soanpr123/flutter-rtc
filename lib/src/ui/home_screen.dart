@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     friendBloc.getUser(widget.token);
     _joinRoom = JoinRoom();
     profileBloc.getInfor(widget.token, getData);
-    _joinRoom.invitCalls(invitCall);
+    _joinRoom.invitCalls(invitCall,widget.token);
   }
 
   @override

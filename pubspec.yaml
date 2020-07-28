@@ -39,10 +39,21 @@ dependencies:
   flappy_search_bar: ^1.7.2
   shared_preferences: ^0.5.8
   provider: ^4.3.1
+  audioplayers: ^0.15.1
+  vibration: ^1.4.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.7.5
+
+flutter_icons:
+  android : "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon.png"
+
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -60,6 +71,9 @@ flutter:
     - assets/images/uoi_logo.png
     - assets/images/logo.JPG
     - assets/images/uoi_logo_login.png
+    - assets/images/icon.png
+    - assets/audio/ringtone.mp3
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
